@@ -11,40 +11,29 @@ export const ADMOB = {
   APP_ID:               'ca-app-pub-9316035916536420~1961894132',
   REWARDED_ANDROID:     'ca-app-pub-9316035916536420/4923099397',
   INTERSTITIAL_ANDROID: 'ca-app-pub-9316035916536420/3763763682',
-  REWARDED_IOS:         'ca-app-pub-9316035916536420/4923099397',     // trocar quando criar no iOS
-  INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/3763763682',     // trocar quando criar no iOS
-  // IDs de teste para desenvolvimento
+  REWARDED_IOS:         'ca-app-pub-9316035916536420/4923099397',
+  INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/3763763682',
   TEST_REWARDED:        'ca-app-pub-3940256099942544/5224354917',
   TEST_INTERSTITIAL:    'ca-app-pub-3940256099942544/1033173712',
 };
 
-// ─── Cores ────────────────────────────────────────────────────────────────────
+// ─── Brand Colors ─────────────────────────────────────────────────────────────
 export const COLORS = {
-  primary:     '#1D9E75',
-  primaryDark: '#0F6E56',
-  primaryBg:   '#e8f8f2',
-  primaryBgDark:'rgba(29,158,117,0.15)',
-  dark:        '#0d0d0d',
-  card:        '#1a1a1a',
-  danger:      '#E24B4A',
-  warning:     '#FAC775',
-  white:       '#ffffff',
-  textPrimary: '#1a1a1a',
-  textMuted:   '#8e8e93',
-  textFaint:   '#aeaeb2',
-  border:      '#e5e5ea',
-  borderDark:  'rgba(255,255,255,0.08)',
-  bgLight:     '#f9f9f9',
-} as const;
+  primary:   '#F5A820',   // Dourado — CTAs, destaques
+  secondary: '#17C8E8',   // Cyan — focus, bordas ativas
+  danger:    '#E24B4A',   // Vermelho — abaixo do mercado
+  success:   '#1DBE75',   // Verde — acima do mercado
+  warning:   '#FAC775',   // Amarelo — nível médio
+  orange:    '#F07030',   // Laranja — accent
 
-// ─── Tipografia ───────────────────────────────────────────────────────────────
-export const FONTS = {
-  black:      '800' as const,
-  bold:       '700' as const,
-  semiBold:   '600' as const,
-  medium:     '500' as const,
-  regular:    '400' as const,
-};
+  dark:      '#0B1838',   // Background principal (navy)
+  surface:   '#0F2048',   // Cards e modais
+  border:    'rgba(255,255,255,0.08)',
+
+  white:     '#ffffff',
+  textMuted: 'rgba(255,255,255,0.45)',
+  textFaint: 'rgba(255,255,255,0.25)',
+} as const;
 
 // ─── Multiplicadores de modelo ────────────────────────────────────────────────
 export const MODEL_MULT: Record<string, number> = {
