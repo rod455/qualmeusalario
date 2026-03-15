@@ -1,5 +1,20 @@
 {
-  "name": "qualmeusalario-monorepo",
+  "name": "quantoganha",
   "version": "1.0.0",
-  "private": true
+  "description": "Quanto Ganha! - Compare seu salario com o mercado",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . -p 3000",
+    "build": "echo \"Static site\"",
+    "preview": "npx serve . -p 4000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["salario", "mercado", "carreira", "brasil"],
+  "author": "Quanto Ganha!",
+  "license": "UNLICENSED"
 }
