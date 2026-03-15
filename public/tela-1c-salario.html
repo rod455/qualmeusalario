@@ -28,18 +28,29 @@
   .fg-label-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .fg-sublabel { font-size:11px; color:#aeaeb2; font-weight:400; text-transform:none; letter-spacing:0; }
 
-  /* BIG SALARY INPUT */
-  .sal-big-wrap { position:relative; }
-  .sal-prefix-big { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:18px; font-weight:700; color:#aeaeb2; pointer-events:none; }
-  input.sal-big {
-    width:100%; padding:16px 16px 16px 52px;
-    font-size:24px; font-weight:800; letter-spacing:-0.5px;
-    border:1.5px solid #e5e5ea; border-radius:14px;
-    background:#fff; color:#1a1a1a; font-family:inherit;
+  /* ── SALÁRIO FIXO — flex row, R$ separado à esquerda ── */
+  .sal-big-row {
+    display:flex; align-items:stretch; gap:0;
+    border:1.5px solid #e5e5ea; border-radius:14px; overflow:hidden;
     transition:border-color 0.15s, box-shadow 0.15s;
   }
-  input.sal-big:focus { outline:none; border-color:#1D9E75; box-shadow:0 0 0 3px rgba(29,158,117,0.1); }
-  input.sal-big::placeholder { color:#d1d1d6; font-weight:500; }
+  .sal-big-row:focus-within {
+    border-color:#1D9E75; box-shadow:0 0 0 3px rgba(29,158,117,0.1);
+  }
+  .sal-currency {
+    padding:16px 12px 16px 18px;
+    font-size:20px; font-weight:800; color:#aeaeb2;
+    background:#fff; display:flex; align-items:center;
+    border-right:1.5px solid #f2f2f7; flex-shrink:0;
+    pointer-events:none; user-select:none; line-height:1;
+  }
+  input.sal-big {
+    flex:1; padding:16px 16px 16px 10px; min-width:0;
+    font-size:24px; font-weight:800; letter-spacing:-0.5px;
+    border:none; outline:none;
+    background:#fff; color:#1a1a1a; font-family:inherit;
+  }
+  input.sal-big::placeholder { color:#d1d1d6; font-weight:500; font-size:22px; }
   .sal-ano { font-size:13px; color:#aeaeb2; margin-top:6px; }
 
   /* DIVIDER */
@@ -60,10 +71,25 @@
   /* EXTRA FIELDS */
   .ext-field { display:none; margin-bottom:14px; }
   .ext-field.vis { display:block; }
-  .sal-row { display:flex; align-items:center; gap:8px; }
-  .sal-prefix { padding:12px 14px; border:1.5px solid #e5e5ea; border-radius:12px; font-size:15px; font-weight:700; color:#8e8e93; background:#f9f9f9; white-space:nowrap; flex-shrink:0; }
-  input[type="number"] { flex:1; padding:12px 14px; font-size:16px; border:1.5px solid #e5e5ea; border-radius:12px; background:#fff; color:#1a1a1a; font-family:inherit; }
-  input[type="number"]:focus { outline:none; border-color:#1D9E75; }
+
+  /* Input com prefixo R$ — sem overlap */
+  .sal-row {
+    display:flex; align-items:stretch; gap:0;
+    border:1.5px solid #e5e5ea; border-radius:12px; overflow:hidden;
+    transition:border-color 0.15s;
+  }
+  .sal-row:focus-within { border-color:#1D9E75; }
+  .sal-prefix {
+    padding:12px 12px; font-size:15px; font-weight:700; color:#8e8e93;
+    background:#f9f9f9; white-space:nowrap; flex-shrink:0;
+    display:flex; align-items:center;
+    border-right:1.5px solid #f2f2f7;
+  }
+  .sal-row input[type="number"] {
+    flex:1; padding:12px 14px; font-size:16px; min-width:0;
+    border:none; outline:none;
+    background:#fff; color:#1a1a1a; font-family:inherit;
+  }
   select { width:100%; padding:11px 14px; font-size:14px; border:1.5px solid #e5e5ea; border-radius:12px; background:#fff; color:#1a1a1a; font-family:inherit; margin-top:8px; }
   select:focus { outline:none; border-color:#1D9E75; }
 
@@ -110,9 +136,10 @@
     <!-- SALÁRIO FIXO -->
     <div class="fg">
       <label class="fg-label">Salário fixo mensal</label>
-      <div class="sal-big-wrap">
-        <span class="sal-prefix-big">R$</span>
-        <input class="sal-big" type="number" id="sal-input" placeholder="0" oninput="updateTotal()">
+      <div class="sal-big-row">
+        <span class="sal-currency">R$</span>
+        <input class="sal-big" type="number" id="sal-input"
+          placeholder="0" inputmode="numeric" oninput="updateTotal()">
       </div>
       <div class="sal-ano" id="sal-ano">—</div>
     </div>
@@ -121,27 +148,47 @@
     <div class="divider"><span>Remuneração variável (opcional)</span></div>
     <div class="extra-toggles">
       <button class="ext-tog" id="tog-com" onclick="togExtra('com')">+ Comissão</button>
-      <button class="ext-tog" id="tog-plr" onclick="togExtra('plr')">+ PLR / Bônus</button>
+      <button class="ext-tog" id="tog-plr" onclick="togExtra('plr')">+ PLR</button>
+      <button class="ext-tog" id="tog-bon" onclick="togExtra('bon')">+ Bônus</button>
       <button class="ext-tog" id="tog-vr"  onclick="togExtra('vr')">+ VR / VA</button>
       <button class="ext-tog" id="tog-out" onclick="togExtra('out')">+ Outros</button>
     </div>
 
+    <!-- COMISSÃO -->
     <div class="ext-field" id="ef-com">
       <div class="fg-label-row">
         <span class="fg-label" style="margin:0">Comissão mensal</span>
         <span class="fg-sublabel">média 3 meses</span>
       </div>
-      <div class="sal-row"><span class="sal-prefix">R$</span><input type="number" id="com-v" placeholder="0" value="0" oninput="updateTotal()"></div>
+      <div class="sal-row">
+        <span class="sal-prefix">R$</span>
+        <input type="number" id="com-v" placeholder="0" inputmode="numeric" oninput="updateTotal()">
+      </div>
     </div>
 
+    <!-- PLR -->
     <div class="ext-field" id="ef-plr">
       <div class="fg-label-row">
-        <span class="fg-label" style="margin:0">PLR / Bônus anual</span>
-        <span class="fg-sublabel">total por ano</span>
+        <span class="fg-label" style="margin:0">PLR — Participação nos Lucros</span>
+        <span class="fg-sublabel">valor anual</span>
       </div>
-      <div class="sal-row"><span class="sal-prefix">R$</span><input type="number" id="plr-v" placeholder="0" value="0" oninput="updateTotal()"></div>
-      <select id="plr-tipo">
-        <option value="plr">PLR — Participação nos Lucros</option>
+      <div class="sal-row">
+        <span class="sal-prefix">R$</span>
+        <input type="number" id="plr-v" placeholder="0" inputmode="numeric" oninput="updateTotal()">
+      </div>
+    </div>
+
+    <!-- BÔNUS -->
+    <div class="ext-field" id="ef-bon">
+      <div class="fg-label-row">
+        <span class="fg-label" style="margin:0">Bônus anual</span>
+        <span class="fg-sublabel">valor anual</span>
+      </div>
+      <div class="sal-row">
+        <span class="sal-prefix">R$</span>
+        <input type="number" id="bon-v" placeholder="0" inputmode="numeric" oninput="updateTotal()">
+      </div>
+      <select id="bon-tipo">
         <option value="bonus">Bônus por desempenho (individual)</option>
         <option value="14sal">14º salário</option>
         <option value="participacao">Participação em resultados</option>
@@ -150,20 +197,28 @@
       </select>
     </div>
 
+    <!-- VR / VA -->
     <div class="ext-field" id="ef-vr">
       <div class="fg-label-row">
         <span class="fg-label" style="margin:0">VR / VA mensal</span>
         <span class="fg-sublabel">refeição + alimentação</span>
       </div>
-      <div class="sal-row"><span class="sal-prefix">R$</span><input type="number" id="vr-v" placeholder="0" value="0" oninput="updateTotal()"></div>
+      <div class="sal-row">
+        <span class="sal-prefix">R$</span>
+        <input type="number" id="vr-v" placeholder="0" inputmode="numeric" oninput="updateTotal()">
+      </div>
     </div>
 
+    <!-- OUTROS -->
     <div class="ext-field" id="ef-out">
       <div class="fg-label-row">
         <span class="fg-label" style="margin:0">Outros benefícios</span>
         <span class="fg-sublabel">saúde, gympass, home office...</span>
       </div>
-      <div class="sal-row"><span class="sal-prefix">R$</span><input type="number" id="out-v" placeholder="0" value="0" oninput="updateTotal()"></div>
+      <div class="sal-row">
+        <span class="sal-prefix">R$</span>
+        <input type="number" id="out-v" placeholder="0" inputmode="numeric" oninput="updateTotal()">
+      </div>
     </div>
 
     <!-- TOTAL CARD -->
@@ -192,41 +247,64 @@ const extras = new Set();
 const fmt = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
 
 function togExtra(id){
-  const tog=document.getElementById('tog-'+id), ef=document.getElementById('ef-'+id);
-  if(extras.has(id)){ extras.delete(id); tog.classList.remove('active'); ef.classList.remove('vis'); const inp=document.getElementById(id+'-v'); if(inp)inp.value=0; }
-  else { extras.add(id); tog.classList.add('active'); ef.classList.add('vis'); }
+  const tog = document.getElementById('tog-' + id);
+  const ef  = document.getElementById('ef-'  + id);
+  if(extras.has(id)){
+    extras.delete(id);
+    tog.classList.remove('active');
+    ef.classList.remove('vis');
+    const inp = document.getElementById(id + '-v');
+    if(inp) inp.value = '';
+  } else {
+    extras.add(id);
+    tog.classList.add('active');
+    ef.classList.add('vis');
+    setTimeout(() => {
+      const inp = document.getElementById(id + '-v');
+      if(inp) inp.focus();
+    }, 100);
+  }
   updateTotal();
 }
 
+function getVal(id){
+  if(!extras.has(id)) return 0;
+  return parseFloat(document.getElementById(id + '-v')?.value) || 0;
+}
+
 function getMyTotal(){
-  const f=parseFloat(document.getElementById('sal-input').value)||0;
-  const c=extras.has('com')?(parseFloat(document.getElementById('com-v').value)||0):0;
-  const p=extras.has('plr')?(parseFloat(document.getElementById('plr-v').value)||0)/12:0;
-  const v=extras.has('vr')?(parseFloat(document.getElementById('vr-v').value)||0):0;
-  const o=extras.has('out')?(parseFloat(document.getElementById('out-v').value)||0):0;
-  return { f, c, p, v, o, total:f+c+p+v+o };
+  const f   = parseFloat(document.getElementById('sal-input').value) || 0;
+  const c   = getVal('com');
+  const plr = getVal('plr') / 12;
+  const bon = getVal('bon') / 12;
+  const v   = getVal('vr');
+  const o   = getVal('out');
+  return { f, c, plr, bon, v, o, total: f + c + plr + bon + v + o };
 }
 
 function updateTotal(){
   const { total, f } = getMyTotal();
-  const salAno = document.getElementById('sal-ano');
-  salAno.textContent = f > 0 ? fmt(f*12) + ' / ano (fixo)' : '—';
-  document.getElementById('tc-val').textContent = total > 0 ? fmt(total) : 'R$ 0';
-  document.getElementById('tc-ano').textContent = total > 0 ? fmt(total*12) + ' / ano' : '—';
+  document.getElementById('sal-ano').textContent = f > 0 ? fmt(f * 12) + ' / ano (fixo)' : '—';
+  document.getElementById('tc-val').textContent  = total > 0 ? fmt(total) : 'R$ 0';
+  document.getElementById('tc-ano').textContent  = total > 0 ? fmt(total * 12) + ' / ano' : '—';
 }
 
 function goAnalyze(){
-  const sal = parseFloat(document.getElementById('sal-input').value)||0;
+  const sal = parseFloat(document.getElementById('sal-input').value) || 0;
   if(sal <= 0){ document.getElementById('sal-input').focus(); return; }
 
-  const d = JSON.parse(localStorage.getItem('qms_data')||'{}');
+  const d = JSON.parse(localStorage.getItem('qms_data') || '{}');
+  const plrVal = getVal('plr');
+  const bonVal = getVal('bon');
   d.salario = sal;
   d.extras = {
-    com: extras.has('com') ? (parseFloat(document.getElementById('com-v').value)||0) : 0,
-    plr: extras.has('plr') ? (parseFloat(document.getElementById('plr-v').value)||0) : 0,
-    plrTipo: document.getElementById('plr-tipo').value,
-    vr:  extras.has('vr')  ? (parseFloat(document.getElementById('vr-v').value)||0)  : 0,
-    out: extras.has('out') ? (parseFloat(document.getElementById('out-v').value)||0) : 0,
+    com:          getVal('com'),
+    plr:          plrVal + bonVal,  // soma PLR + Bônus no cálculo
+    plrTipo:      bonVal > 0 ? (document.getElementById('bon-tipo')?.value || 'bonus') : 'plr',
+    vr:           getVal('vr'),
+    out:          getVal('out'),
+    plrDetalhado: plrVal,
+    bonDetalhado: bonVal,
   };
   localStorage.setItem('qms_data', JSON.stringify(d));
   window.location.href = 'tela-2-reward.html';
