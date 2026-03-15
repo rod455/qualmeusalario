@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "Qual Meu Salário?",
-    "slug": "qualmeusalario",
+    "name": "Quanto Ganha!",
+    "slug": "quantoganha",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "qualmeusalario",
-    "userInterfaceStyle": "automatic",
+    "scheme": "quantoganha",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0d0d0d"
+      "backgroundColor": "#0B1838"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.qualmeusalario.app",
+      "bundleIdentifier": "com.quantoganha.app",
       "buildNumber": "1",
       "infoPlist": {
         "GADApplicationIdentifier": "ca-app-pub-9316035916536420~1961894132",
@@ -28,9 +28,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#1D9E75"
+        "backgroundColor": "#0B1838"
       },
-      "package": "com.qualmeusalario.app",
+      "package": "com.quantoganha.app",
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -45,13 +45,13 @@
       "expo-font",
       [
         "expo-splash-screen",
-        { "backgroundColor": "#0d0d0d", "image": "./assets/images/splash.png" }
+        { "backgroundColor": "#0B1838", "image": "./assets/images/splash.png" }
       ],
       [
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#1D9E75",
+          "color": "#F5A820",
           "sounds": []
         }
       ],
@@ -69,12 +69,14 @@
     },
     "extra": {
       "eas": { "projectId": "SEU_EAS_PROJECT_ID" },
-      "supabaseUrl":     "https://mnqqmxizchcxwptnhsfm.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXFteGl6Y2hjeHdwdG5oc2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTEyMTgsImV4cCI6MjA4OTEyNzIxOH0.G8hnal04gsQVhJd9vorHHKYsnYFtlz3ALtSks1By-rQ",
-      "adzunaAppId":     "7e179384",
-      "adzunaAppKey":    "3d838dfc1cc9ec16c0d4feff067fdd33",
-      "admobRewardedAndroid": "ca-app-pub-9316035916536420/4923099397",
-      "admobRewardedIos":     "ca-app-pub-9316035916536420/4923099397"
+      "supabaseUrl":            "https://mnqqmxizchcxwptnhsfm.supabase.co",
+      "supabaseAnonKey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXFteGl6Y2hjeHdwdG5oc2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTEyMTgsImV4cCI6MjA4OTEyNzIxOH0.G8hnal04gsQVhJd9vorHHKYsnYFtlz3ALtSks1By-rQ",
+      "adzunaAppId":            "7e179384",
+      "adzunaAppKey":           "3d838dfc1cc9ec16c0d4feff067fdd33",
+      "admobRewardedAndroid":   "ca-app-pub-9316035916536420/4923099397",
+      "admobRewardedIos":       "ca-app-pub-9316035916536420/4923099397",
+      "admobInterstitialAndroid": "ca-app-pub-9316035916536420/3763763682",
+      "admobInterstitialIos":     "ca-app-pub-9316035916536420/3763763682"
     }
   }
 }
