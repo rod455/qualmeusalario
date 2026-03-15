@@ -137,7 +137,7 @@
     <div class="teaser-section">
       <div class="teaser-tag">🔍 Análise em andamento</div>
       <div class="teaser-title" id="teaser-title">Cruzando dados<br>do mercado para você</div>
-      <div class="teaser-subtitle" id="teaser-sub">Aguarde enquanto comparamos seu pacote com 2.4M registros do CAGED 2024.</div>
+      <div class="teaser-subtitle" id="teaser-sub">Aguarde enquanto comparamos seu pacote com 2.4M registros do CAGED.</div>
     </div>
 
     <div class="teaser-card">
@@ -178,7 +178,7 @@
     <div class="steps-section">
       <div class="step-item" id="step-0">
         <div class="step-dot-wrap"><div class="step-dot"></div></div>
-        <div class="step-text" id="step-text-0">Buscando cargo no CAGED 2024</div>
+        <div class="step-text" id="step-text-0">Buscando cargo no CAGED</div>
         <span class="step-check">✓</span>
       </div>
       <div class="step-item" id="step-1">
@@ -275,7 +275,7 @@ const cidadeStr = result.isNomad ? 'Nomad Digital' : result.cidade.nome;
 const modelStr  = result.isNomad ? 'Remoto Internacional' : MODEL_LABEL[result.workModel];
 document.getElementById('teaser-title').textContent = `Analisando ${data.cargo.split('(')[0].trim()} em ${cidadeStr}`;
 document.getElementById('teaser-sub').textContent = `Cruzando ${data.cargo.split('(')[0].trim()} · ${cidadeStr} · ${modelStr} com os dados mais recentes do mercado.`;
-document.getElementById('step-text-0').textContent = `Buscando ${data.cargo.split('(')[0].trim()} no CAGED 2024`;
+document.getElementById('step-text-0').textContent = `Buscando ${data.cargo.split('(')[0].trim()} no CAGED`;
 document.getElementById('step-text-1').textContent = `Filtrando por ${cidadeStr} · ${modelStr}`;
 
 // Blurred teaser values (revelados aos 10s)
