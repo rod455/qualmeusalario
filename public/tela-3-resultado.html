@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Qual Meu Salário — Resultado</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:#f2f2f7; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  .phone {
+    max-width:390px; min-height:100vh; margin:0 auto;
+    background:#fff; display:flex; flex-direction:column; overflow:hidden;
+    padding-bottom:72px;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    padding:14px 22px; display:flex; align-items:center;
+    justify-content:space-between; flex-shrink:0;
+    border-bottom:0.5px solid #e5e5ea;
+  }
+  .back-btn {
+    background:none; border:none; font-size:15px;
+    color:#1D9E75; font-weight:500; cursor:pointer;
+    font-family:inherit; padding:4px 0; display:flex; align-items:center; gap:4px;
+  }
+  .logo-small { font-size:13px; font-weight:700; color:#1a1a1a; }
+
+  /* HERO */
+  .result-hero {
+    padding:18px 22px 16px;
+    background:#f9f9f9; border-bottom:0.5px solid #e5e5ea;
+    flex-shrink:0;
+  }
+  .result-tags { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px; }
+  .rtag {
+    font-size:12px; font-weight:600; padding:4px 11px;
+    border-radius:20px;
+  }
+  .rtag.green { background:#e8f8f2; color:#0F6E56; }
+  .rtag.gray  { background:#fff; border:1px solid #e5e5ea; color:#8e8e93; }
+
+  .verdict-row { display:flex; align-items:flex-end; gap:14px; margin-bottom:16px; }
+  .vpct { font-size:52px; font-weight:800; line-height:1; letter-spacing:-1px; }
+  .vpct.below { color:#E24B4A; }
+  .vpct.above { color:#1D9E75; }
+  .vdesc { font-size:15px; color:#8e8e93; line-height:1.4; padding-bottom:6px; }
+
+  /* BREAKDOWN */
+  .bdown { display:flex; flex-direction:column; gap:10px; }
+  .brow { display:flex; flex-direction:column; gap:4px; }
+  .bhead { display:flex; justify-content:space-between; align-items:center; }
+  .btitle { font-size:12px; color:#8e8e93; }
+  .bvals { display:flex; gap:6px; align-items:center; }
+  .by { font-size:12px; font-weight:700; color:#E24B4A; }
+  .by.ab { color:#1D9E75; }
+  .bsep { font-size:11px; color:#aeaeb2; }
+  .bm  { font-size:12px; color:#aeaeb2; }
+  .btrack {
+    width:100%; height:7px; background:#f2f2f7;
+    border-radius:4px; overflow:hidden; position:relative;
+  }
+  .bfm {
+    position:absolute; top:0; left:0; height:100%;
+    border-radius:4px; background:rgba(29,158,117,0.18);
+    transition:width 0.9s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bfy {
+    position:absolute; top:0; left:0; height:100%;
+    border-radius:4px; background:#E24B4A;
+    transition:width 0.9s cubic-bezier(0.4,0,0.2,1);
+  }
+  .bfy.ab { background:#1D9E75; }
+  .total-divider { height:0.5px; background:#e5e5ea; margin:4px 0; }
+  .total-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0 0; }
+  .tlabel { font-size:14px; font-weight:600; color:#1a1a1a; }
+  .tvals { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .tyou { font-size:17px; font-weight:800; }
+  .tyou.below { color:#E24B4A; } .tyou.above { color:#1D9E75; }
+  .tmkt { font-size:12px; color:#8e8e93; }
+
+  /* SCROLL BODY */
+  .result-body { flex:1; overflow-y:auto; padding:16px 22px 32px; display:flex; flex-direction:column; gap:14px; -webkit-overflow-scrolling:touch; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:390px;
+    background:#161616; border-top:1px solid rgba(255,255,255,0.08);
+    display:flex; align-items:stretch; z-index:50;
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+  }
+  .nav-item {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:10px 4px 12px;
+    cursor:pointer; background:none; border:none;
+    font-family:inherit; gap:3px; transition:opacity 0.15s;
+  }
+  .nav-item:active { opacity:0.7; }
+  .nav-icon-wrap {
+    width:28px; height:28px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; transition:background 0.15s;
+  }
+  .nav-item.active .nav-icon-wrap { background:rgba(29,158,117,0.18); }
+  .nav-label { font-size:10px; font-weight:600; color:rgba(255,255,255,0.3); letter-spacing:0.1px; }
+  .nav-item.active .nav-label { color:#1D9E75; }
+
+  /* ── TELAS BLOQUEADAS ── */
+  .locked-screen {
+    display:none;
+    position:fixed;
+    top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:390px;
+    height:calc(100% - 72px);
+    overflow-y:auto;
+    background:#fff;
+    z-index:40;
+    flex-direction:column;
+    -webkit-overflow-scrolling:touch;
+  }
+  .locked-screen.visible { display:flex; }
+
+  .locked-blur-content {
+    padding:16px 22px 20px; display:flex; flex-direction:column; gap:12px;
+    filter:blur(6px); pointer-events:none; user-select:none;
+    /* Must NOT use overflow:hidden or the blur gets clipped */
+  }
+
+  /* Fake cards — cores bem definidas para ficarem visíveis com blur */
+  .fake-card {
+    background:#fff; border:1px solid #e5e5ea;
+    border-radius:16px; padding:16px; overflow:hidden;
+  }
+  .fake-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .fake-title { height:14px; width:45%; background:#1a1a1a; border-radius:6px; opacity:0.15; }
+  .fake-badge { height:22px; width:90px; background:#1D9E75; border-radius:20px; opacity:0.25; }
+
+  .fake-big-num { height:44px; width:55%; background:#E24B4A; border-radius:8px; opacity:0.3; margin-bottom:12px; }
+  .fake-big-num.green { background:#1D9E75; }
+
+  .fake-line { height:10px; background:#1a1a1a; border-radius:6px; margin-bottom:10px; opacity:0.1; }
+  .fake-line.short  { width:40%; }
+  .fake-line.medium { width:68%; }
+  .fake-line.full   { width:100%; }
+  .fake-line.tall   { height:48px; border-radius:10px; background:#e5e5ea; opacity:1; }
+
+  .fake-bar-row { display:flex; align-items:flex-end; gap:5px; height:56px; margin-top:4px; }
+  .fake-bar { border-radius:4px 4px 0 0; flex-shrink:0; width:calc(20% - 4px); }
+  .fake-bar.b1 { height:35%; background:#FAC775; }
+  .fake-bar.b2 { height:48%; background:#FAC775; }
+  .fake-bar.b3 { height:62%; background:#E24B4A; }
+  .fake-bar.b4 { height:78%; background:#E24B4A; }
+  .fake-bar.b5 { height:100%; background:#E24B4A; }
+
+  .fake-divider { height:1px; background:#e5e5ea; margin:8px 0; }
+
+  .fake-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; }
+  .fake-row-label { height:10px; width:38%; background:#1a1a1a; border-radius:5px; opacity:0.1; }
+  .fake-row-val   { height:12px; width:22%; background:#1D9E75; border-radius:5px; opacity:0.35; }
+  .fake-row-val.red { background:#E24B4A; }
+
+  .fake-opp-card {
+    background:#e8f8f2; border:1px solid #5DCAA5;
+    border-radius:14px; padding:14px; margin-bottom:2px;
+  }
+  .fake-opp-line1 { height:13px; width:80%; background:#0F6E56; border-radius:6px; opacity:0.4; margin-bottom:8px; }
+  .fake-opp-line2 { height:10px; width:55%; background:#1D9E75; border-radius:5px; opacity:0.3; }
+
+  .fake-chip-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+  .fake-chip { height:28px; border-radius:20px; background:#e5e5ea; }
+  .fake-chip.w1 { width:80px; }
+  .fake-chip.w2 { width:65px; }
+  .fake-chip.w3 { width:95px; }
+  .fake-chip.g  { background:#e8f8f2; }
+
+  /* LOCK OVERLAY */
+  .lock-overlay {
+    position:absolute; inset:0;
+    background:linear-gradient(
+      to bottom,
+      rgba(255,255,255,0)   0%,
+      rgba(255,255,255,0.5) 15%,
+      rgba(255,255,255,0.95) 28%,
+      rgba(255,255,255,1)   40%
+    );
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:36px 28px 32px; z-index:10; overflow-y:auto;
+  }
+  .lock-icon-circle {
+    width:56px; height:56px; background:#1a1a1a; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; margin-bottom:16px; flex-shrink:0;
+  }
+  .lock-title { font-size:20px; font-weight:800; color:#1a1a1a; text-align:center; letter-spacing:-0.4px; margin-bottom:8px; }
+  .lock-desc { font-size:14px; color:#8e8e93; text-align:center; line-height:1.5; margin-bottom:24px; }
+  .lock-perks { width:100%; display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+  .lock-perk { display:flex; align-items:center; gap:10px; }
+  .lock-perk-icon { width:28px; height:28px; background:#e8f8f2; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .lock-perk-text { font-size:13px; color:#3a3a3c; line-height:1.3; }
+  .lock-perk-text strong { color:#1a1a1a; font-weight:700; }
+  .lock-cta {
+    width:100%; padding:15px; background:#1a1a1a; color:#fff;
+    border:none; border-radius:14px; font-size:16px; font-weight:800;
+    cursor:pointer; font-family:inherit; letter-spacing:-0.3px; margin-bottom:10px;
+  }
+  .lock-cta:active { opacity:0.85; }
+  .lock-google {
+    width:100%; padding:13px; background:#fff; color:#1a1a1a;
+    border:1.5px solid #e5e5ea; border-radius:14px; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:9px;
+  }
+  .lock-google:active { background:#f9f9f9; }
+  .lock-later { background:none; border:none; font-size:13px; color:#aeaeb2; cursor:pointer; font-family:inherit; margin-top:8px; }
+
+  /* ── VAGAS SCREEN ── */
+  .vf-btn {
+    padding:6px 14px; font-size:12px; font-weight:600;
+    border:1px solid #e5e5ea; border-radius:20px;
+    background:#fff; color:#8e8e93; cursor:pointer; font-family:inherit;
+    transition:all 0.15s;
+  }
+  .vf-btn.active { background:#1D9E75; color:#fff; border-color:#1D9E75; }
+
+  .vaga-card {
+    background:#fff; border:1px solid #e5e5ea; border-radius:14px;
+    padding:14px 16px; margin-bottom:10px; cursor:pointer;
+    transition:border-color 0.15s;
+  }
+  .vaga-card:active { border-color:#1D9E75; }
+  .vaga-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .vaga-titulo { font-size:15px; font-weight:700; color:#1a1a1a; flex:1; line-height:1.3; }
+  .vaga-modelo-tag {
+    font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px;
+    white-space:nowrap; margin-left:8px; flex-shrink:0;
+  }
+  .vaga-modelo-tag.remoto    { background:#e8f8f2; color:#0F6E56; }
+  .vaga-modelo-tag.hibrido   { background:#E6F1FB; color:#185FA5; }
+  .vaga-modelo-tag.presencial{ background:#f2f2f7; color:#8e8e93; }
+  .vaga-empresa { font-size:12px; color:#8e8e93; margin-bottom:8px; }
+  .vaga-sal-row { display:flex; align-items:center; gap:8px; }
+  .vaga-sal { font-size:16px; font-weight:800; color:#1D9E75; }
+  .vaga-diff { font-size:12px; font-weight:600; color:#1D9E75; background:#e8f8f2; padding:2px 8px; border-radius:10px; }
+  .vaga-diff.neg { color:#E24B4A; background:#fcebeb; }
+  .vaga-meta { display:flex; gap:12px; margin-top:8px; }
+  .vaga-meta-item { font-size:11px; color:#aeaeb2; display:flex; align-items:center; gap:3px; }
+  .vaga-link-btn {
+    display:block; width:100%; margin-top:10px; padding:9px;
+    background:#1a1a1a; color:#fff; border:none; border-radius:10px;
+    font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; text-align:center;
+    text-decoration:none;
+  }
+
+  /* ── NEGOCIAÇÃO SCREEN ── */
+  .nl-btn {
+    padding:7px 14px; font-size:12px; font-weight:600;
+    border:1px solid rgba(255,255,255,0.15); border-radius:20px;
+    background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.6);
+    cursor:pointer; font-family:inherit; transition:all 0.15s;
+  }
+  .nl-btn.active { background:#1D9E75; color:#fff; border-color:#1D9E75; }
+  .nl-btn.locked-btn { color:rgba(255,255,255,0.35); }
+
+  .chat-msg { margin-bottom:12px; }
+  .chat-msg.rh { display:flex; gap:8px; }
+  .chat-msg.user { display:flex; gap:8px; flex-direction:row-reverse; }
+  .chat-avatar {
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:13px;
+  }
+  .chat-avatar.rh-av   { background:#1a1a1a; }
+  .chat-avatar.user-av { background:#1D9E75; }
+  .chat-bubble {
+    max-width:78%; padding:10px 13px; border-radius:14px;
+    font-size:13px; line-height:1.5;
+  }
+  .chat-msg.rh   .chat-bubble { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.85); border-bottom-left-radius:4px; }
+  .chat-msg.user .chat-bubble { background:#1D9E75; color:#fff; border-bottom-right-radius:4px; }
+  .chat-name { font-size:10px; color:rgba(255,255,255,0.3); margin-bottom:3px; }
+  .chat-msg.user .chat-name { text-align:right; }
+
+  .chat-typing {
+    display:flex; align-items:center; gap:4px;
+    padding:10px 13px; background:rgba(255,255,255,0.08);
+    border-radius:14px; border-bottom-left-radius:4px;
+    width:fit-content;
+  }
+  .typing-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:rgba(255,255,255,0.4);
+    animation:typingDot 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2){ animation-delay:0.2s; }
+  .typing-dot:nth-child(3){ animation-delay:0.4s; }
+  @keyframes typingDot { 0%,60%,100%{opacity:0.4} 30%{opacity:1} }
+
+  .qr-chip {
+    padding:6px 12px; font-size:12px; font-weight:500;
+    border:1px solid rgba(29,158,117,0.4); border-radius:20px;
+    background:rgba(29,158,117,0.08); color:#1D9E75;
+    cursor:pointer; font-family:inherit; white-space:nowrap;
+    margin-bottom:6px;
+  }
+  .qr-chip:active { background:rgba(29,158,117,0.2); }
+  .perfil-screen {
+    display:none;
+    position:fixed;
+    top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:390px;
+    height:calc(100% - 72px);
+    overflow-y:auto;
+    background:#0d0d0d;
+    z-index:40;
+    flex-direction:column;
+    -webkit-overflow-scrolling:touch;
+  }
+  .perfil-screen.visible { display:flex; }
+
+  .perfil-header { padding:28px 22px 20px; border-bottom:1px solid rgba(255,255,255,0.07); }
+  .perfil-avatar-row { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+  .perfil-avatar {
+    width:64px; height:64px; border-radius:50%;
+    background:linear-gradient(135deg,#1D9E75,#0F6E56);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:800; color:#fff; flex-shrink:0;
+    letter-spacing:-0.5px;
+  }
+  .perfil-info { flex:1; }
+  .perfil-name { font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+  .perfil-email { font-size:13px; color:rgba(255,255,255,0.4); margin-top:3px; }
+  .perfil-tag-row { display:flex; gap:7px; flex-wrap:wrap; }
+  .perfil-tag { font-size:11px; font-weight:600; padding:4px 11px; border-radius:20px; }
+  .perfil-tag.green { background:rgba(29,158,117,0.18); color:#1D9E75; }
+  .perfil-tag.gray  { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); }
+
+  .perfil-body { padding:16px 22px; display:flex; flex-direction:column; gap:14px; padding-bottom:32px; }
+
+  /* RESULT CARD NO PERFIL */
+  .p-result-card {
+    background:#1a1a1a; border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:16px;
+  }
+  .p-card-label { font-size:10px; font-weight:800; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:12px; }
+  .p-result-main { display:flex; align-items:flex-end; gap:10px; margin-bottom:12px; }
+  .p-result-pct { font-size:40px; font-weight:900; line-height:1; letter-spacing:-1px; }
+  .p-result-pct.below { color:#E24B4A; }
+  .p-result-pct.above { color:#1D9E75; }
+  .p-result-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.4; padding-bottom:4px; }
+  .p-result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid rgba(255,255,255,0.06); }
+  .p-result-row-label { font-size:12px; color:rgba(255,255,255,0.4); }
+  .p-result-row-val { font-size:13px; font-weight:700; color:rgba(255,255,255,0.8); }
+  .p-result-row-val.red { color:#E24B4A; }
+  .p-result-row-val.green { color:#1D9E75; }
+
+  /* SHARE CARD */
+  .p-share-card {
+    background:#1a1a1a; border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; overflow:hidden;
+  }
+  .p-share-top { padding:14px 16px 10px; }
+  .p-share-title { font-size:15px; font-weight:800; color:#fff; letter-spacing:-0.2px; margin-bottom:4px; }
+  .p-share-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.4; }
+  .p-share-btns { padding:12px 16px 16px; display:flex; flex-direction:column; gap:9px; }
+  .p-btn-tiktok {
+    width:100%; padding:13px; background:#ff2d55; color:#fff;
+    border:none; border-radius:12px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .p-btn-tiktok:active { opacity:0.85; }
+  .p-btn-row { display:flex; gap:8px; }
+  .p-btn-other {
+    flex:1; padding:10px 8px; background:rgba(255,255,255,0.07);
+    color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:inherit; text-align:center;
+  }
+  .p-btn-other:active { background:rgba(255,255,255,0.12); }
+
+  /* INVITE CARD */
+  .p-invite-card {
+    background:linear-gradient(135deg,rgba(29,158,117,0.15) 0%,rgba(29,158,117,0.05) 100%);
+    border:1px solid rgba(29,158,117,0.25); border-radius:16px; padding:16px;
+  }
+  .p-invite-eyebrow { font-size:10px; font-weight:800; color:#1D9E75; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+  .p-invite-title { font-size:16px; font-weight:800; color:#fff; line-height:1.3; letter-spacing:-0.3px; margin-bottom:6px; }
+  .p-invite-desc { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.4; margin-bottom:14px; }
+  .p-invite-link-wrap {
+    background:rgba(0,0,0,0.3); border:1px solid rgba(29,158,117,0.3);
+    border-radius:10px; padding:11px 14px; display:flex;
+    align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;
+  }
+  .p-invite-link { font-size:13px; color:rgba(255,255,255,0.6); font-family:monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .p-copy-btn {
+    padding:6px 14px; background:#1D9E75; color:#fff;
+    border:none; border-radius:8px; font-size:12px; font-weight:700;
+    cursor:pointer; font-family:inherit; flex-shrink:0;
+  }
+  .p-copy-btn:active { opacity:0.85; }
+  .p-invite-share-row { display:flex; gap:8px; }
+  .p-invite-btn {
+    flex:1; padding:10px; background:rgba(255,255,255,0.07);
+    color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:inherit; text-align:center; display:flex;
+    align-items:center; justify-content:center; gap:5px;
+  }
+  .p-invite-btn:active { background:rgba(255,255,255,0.12); }
+  .p-invite-stats { display:flex; gap:0; margin-top:12px; }
+  .p-stat { flex:1; text-align:center; padding:10px 0; border-right:1px solid rgba(255,255,255,0.07); }
+  .p-stat:last-child { border-right:none; }
+  .p-stat-num { font-size:20px; font-weight:800; color:#1D9E75; }
+  .p-stat-label { font-size:10px; color:rgba(255,255,255,0.35); margin-top:2px; font-weight:500; }
+
+  /* SETTINGS CARD */
+  .p-settings-card { background:#1a1a1a; border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden; }
+  .p-settings-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.05);
+    cursor:pointer;
+  }
+  .p-settings-row:last-child { border-bottom:none; }
+  .p-settings-row:active { background:rgba(255,255,255,0.04); }
+  .p-settings-left { display:flex; align-items:center; gap:12px; }
+  .p-settings-icon { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .p-settings-icon.green  { background:rgba(29,158,117,0.15); }
+  .p-settings-icon.orange { background:rgba(255,149,0,0.15); }
+  .p-settings-icon.red    { background:rgba(255,59,48,0.15); }
+  .p-settings-icon.blue   { background:rgba(0,122,255,0.15); }
+  .p-settings-name { font-size:14px; font-weight:600; color:#fff; }
+  .p-settings-desc { font-size:11px; color:rgba(255,255,255,0.35); margin-top:1px; }
+  .p-settings-arrow { font-size:14px; color:rgba(255,255,255,0.2); }
+
+  /* LOCKED PERFIL CTA */
+  .p-locked-cta { background:#1a1a1a; border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:16px; }
+  .p-locked-cta-title { font-size:14px; font-weight:700; color:#fff; margin-bottom:4px; }
+  .p-locked-cta-desc { font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:14px; line-height:1.4; }
+  .p-locked-cta-btn {
+    width:100%; padding:13px; background:#fff; color:#1a1a1a;
+    border:none; border-radius:12px; font-size:14px; font-weight:800;
+    cursor:pointer; font-family:inherit; letter-spacing:-0.2px;
+  }
+  .p-locked-cta-btn:active { opacity:0.85; }
+
+  .reward-card {
+    border:1.5px solid #5DCAA5; border-radius:16px;
+    padding:15px 16px; background:#e8f8f2;
+  }
+  .rc-eyebrow {
+    font-size:10px; font-weight:700; color:#0F6E56;
+    text-transform:uppercase; letter-spacing:0.6px; margin-bottom:7px;
+    display:flex; align-items:center; gap:5px;
+  }
+  .rc-title { font-size:15px; font-weight:700; color:#085041; line-height:1.35; margin-bottom:4px; }
+  .rc-sub { font-size:13px; color:#0F6E56; }
+  .rc-btn {
+    width:100%; margin-top:12px; padding:13px;
+    background:#1D9E75; color:#fff; border:none;
+    border-radius:12px; font-size:15px; font-weight:700;
+    cursor:pointer; font-family:inherit; display:flex;
+    align-items:center; justify-content:center; gap:8px;
+    letter-spacing:-0.2px;
+  }
+  .rc-btn:active { opacity:0.85; }
+
+  /* CADASTRO CARD */
+  .cad-card {
+    border:1px solid #e5e5ea; border-radius:16px; overflow:hidden;
+  }
+  .cad-top { padding:15px 16px; }
+  .cad-eyebrow {
+    font-size:10px; font-weight:700; color:#8e8e93;
+    text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px;
+  }
+  .cad-title {
+    font-size:17px; font-weight:800; color:#1a1a1a;
+    line-height:1.3; letter-spacing:-0.3px; margin-bottom:4px;
+  }
+  .cad-subtitle { font-size:14px; color:#8e8e93; line-height:1.4; }
+  .cad-perks { display:flex; flex-direction:column; gap:9px; margin-top:14px; }
+  .cad-perk { display:flex; align-items:flex-start; gap:10px; }
+  .perk-icon {
+    width:28px; height:28px; border-radius:8px;
+    background:#e8f8f2; display:flex; align-items:center;
+    justify-content:center; font-size:13px; flex-shrink:0; margin-top:1px;
+  }
+  .perk-text { font-size:13px; color:#3a3a3c; line-height:1.4; }
+  .perk-text strong { color:#1a1a1a; font-weight:600; }
+
+  .cad-actions { border-top:0.5px solid #e5e5ea; }
+  .cad-btn-main {
+    width:100%; padding:15px 16px; background:#1a1a1a; color:#fff;
+    border:none; font-size:15px; font-weight:700; cursor:pointer;
+    font-family:inherit; display:flex; align-items:center;
+    justify-content:center; gap:8px; letter-spacing:-0.2px;
+    transition:opacity 0.15s;
+  }
+  .cad-btn-main:active { opacity:0.85; }
+  .cad-btn-sec {
+    width:100%; padding:13px 16px; background:#fff; color:#8e8e93;
+    border:none; border-top:0.5px solid #e5e5ea;
+    font-size:14px; cursor:pointer; font-family:inherit;
+  }
+
+  /* MODAL */
+  .modal-bg {
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    display:flex; align-items:flex-end; z-index:50;
+    opacity:0; pointer-events:none; transition:opacity 0.25s;
+  }
+  .modal-bg.open { opacity:1; pointer-events:all; }
+  .modal-sheet {
+    width:100%; max-width:390px; margin:0 auto;
+    background:#fff; border-radius:20px 20px 0 0;
+    padding:24px 24px 36px; display:flex; flex-direction:column; gap:14px;
+    transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+  }
+  .modal-bg.open .modal-sheet { transform:translateY(0); }
+  .modal-handle { width:44px; height:5px; background:#e5e5ea; border-radius:3px; align-self:center; margin-bottom:6px; }
+  .modal-title { font-size:20px; font-weight:800; color:#1a1a1a; letter-spacing:-0.3px; }
+  .modal-desc { font-size:14px; color:#8e8e93; line-height:1.5; }
+  .ad-box {
+    background:#f9f9f9; border:1px solid #e5e5ea;
+    border-radius:12px; height:80px; display:flex;
+    align-items:center; justify-content:center;
+    font-size:12px; color:#aeaeb2; position:relative;
+  }
+  .skip-timer { position:absolute; top:10px; right:12px; font-size:11px; color:#aeaeb2; font-weight:600; }
+  .modal-cta {
+    padding:15px; background:#1D9E75; color:#fff;
+    border:none; border-radius:14px; font-size:16px;
+    font-weight:700; cursor:pointer; font-family:inherit;
+    transition:opacity 0.15s; letter-spacing:-0.2px;
+  }
+  .modal-cta:disabled { opacity:0.4; cursor:not-allowed; }
+  .modal-skip { background:none; border:none; font-size:14px; color:#8e8e93; cursor:pointer; font-family:inherit; text-align:center; padding:4px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="back-btn" onclick="window.location.href='tela-1a-cargo.html'">← Refazer análise</button>
+    <div class="logo-small">Qual Meu Salário</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="result-hero">
+    <div class="result-tags">
+      <span class="rtag green" id="tag-cargo">Dev Pleno</span>
+      <span class="rtag gray"  id="tag-cidade">São Paulo, SP</span>
+      <span class="rtag gray"  id="tag-model">Híbrido</span>
+    </div>
+    <div class="verdict-row">
+      <div class="vpct below" id="vpct">−18%</div>
+      <div class="vdesc" id="vdesc">abaixo do pacote<br>médio de mercado</div>
+    </div>
+    <div class="bdown" id="breakdown"></div>
+  </div>
+
+  <!-- BODY SCROLLÁVEL -->
+  <div class="result-body">
+
+    <!-- CTA: GERAR CARD TIKTOK -->
+    <div class="reward-card">
+      <div class="rc-eyebrow">🎬 Compartilhar no TikTok</div>
+      <div class="rc-title" id="rc-title">Gere seu card viral e mostre pro mundo</div>
+      <div class="rc-sub">Assista um breve anúncio e receba o card personalizado</div>
+      <button class="rc-btn" onclick="openRewardModal()">
+        ▶ &nbsp;Assistir anúncio e gerar card
+      </button>
+    </div>
+
+    <!-- CTA: CRIAR CONTA -->
+    <div class="cad-card">
+      <div class="cad-top">
+        <div class="cad-eyebrow">Grátis — Crie sua conta agora</div>
+        <div class="cad-title">Monitore seu salário todo mês e não perca mais dinheiro</div>
+        <div class="cad-subtitle">Seu salário pode estar perdendo para o mercado todo mês sem você saber.</div>
+        <div class="cad-perks">
+          <div class="cad-perk">
+            <div class="perk-icon">📈</div>
+            <div class="perk-text"><strong>Tracker mensal</strong> — veja se sua defasagem está aumentando ou diminuindo</div>
+          </div>
+          <div class="cad-perk">
+            <div class="perk-icon">🔔</div>
+            <div class="perk-text"><strong>Alertas de mercado</strong> — "Dev Pleno em SP subiu 6% este mês"</div>
+          </div>
+          <div class="cad-perk">
+            <div class="perk-icon">💼</div>
+            <div class="perk-text"><strong>Vagas acima da sua faixa</strong> — oportunidades compatíveis com seu perfil</div>
+          </div>
+          <div class="cad-perk">
+            <div class="perk-icon">🎯</div>
+            <div class="perk-text"><strong>Simulador de negociação</strong> — treine antes de pedir aumento</div>
+          </div>
+        </div>
+      </div>
+      <div class="cad-actions">
+        <button class="cad-btn-main" onclick="window.location.href='tela-4-share.html?signup=1'">
+          Criar conta grátis →
+        </button>
+        <button class="cad-btn-sec" onclick="window.location.href='tela-4-share.html'">
+          Só quero o card por enquanto
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TELA TRACKER (bloqueada) ── -->
+<div class="locked-screen" id="screen-tracker">
+  <div class="locked-blur-content">
+
+    <!-- Fake: saúde salarial card com gauge e barras coloridas -->
+    <div class="fake-card">
+      <div class="fake-header">
+        <div class="fake-title"></div>
+        <div class="fake-badge"></div>
+      </div>
+      <div class="fake-big-num" style="width:40%;height:52px;opacity:0.35"></div>
+      <div class="fake-bar-row">
+        <div class="fake-bar b1"></div>
+        <div class="fake-bar b2"></div>
+        <div class="fake-bar b3"></div>
+        <div class="fake-bar b4"></div>
+        <div class="fake-bar b5"></div>
+      </div>
+    </div>
+
+    <!-- Fake: timeline card -->
+    <div class="fake-card">
+      <div class="fake-header">
+        <div class="fake-title"></div>
+      </div>
+      <div class="fake-row"><div class="fake-row-label"></div><div class="fake-row-val red"></div></div>
+      <div class="fake-divider"></div>
+      <div class="fake-row"><div class="fake-row-label"></div><div class="fake-row-val red"></div></div>
+      <div class="fake-divider"></div>
+      <div class="fake-row"><div class="fake-row-label"></div><div class="fake-row-val" style="background:#FAC775"></div></div>
+    </div>
+
+    <!-- Fake: projeção card com badge verde -->
+    <div class="fake-card" style="background:#f9fff9;border-color:#5DCAA5;">
+      <div class="fake-header">
+        <div class="fake-title" style="background:#1D9E75;opacity:0.3"></div>
+        <div style="height:22px;width:70px;background:#1D9E75;border-radius:20px;opacity:0.3"></div>
+      </div>
+      <div class="fake-line medium" style="background:#1D9E75;opacity:0.2"></div>
+      <div class="fake-line full"   style="height:40px;background:#e8f8f2;opacity:1;border-radius:8px"></div>
+    </div>
+
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-icon-circle">📈</div>
+    <div class="lock-title">Monitore sua evolução mês a mês</div>
+    <div class="lock-desc">Veja se sua defasagem está crescendo e receba alertas quando o mercado mudar.</div>
+    <div class="lock-perks">
+      <div class="lock-perk"><div class="lock-perk-icon">📊</div><div class="lock-perk-text"><strong>Gráfico de evolução</strong> — histórico completo do seu salário vs. mercado</div></div>
+      <div class="lock-perk"><div class="lock-perk-icon">🔔</div><div class="lock-perk-text"><strong>Push mensal</strong> — "Dev Pleno em SP subiu 6% este mês"</div></div>
+      <div class="lock-perk"><div class="lock-perk-icon">🎯</div><div class="lock-perk-text"><strong>Projeção dos próximos 12 meses</strong> — saiba quando negociar</div></div>
+    </div>
+    <button class="lock-cta" onclick="goSignup()">Criar conta grátis →</button>
+    <button class="lock-google" onclick="goGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.615 24 12.255 24z"/><path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"/><path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+      Entrar com Google
+    </button>
+    <button class="lock-later" onclick="setTab('inicio')">Agora não</button>
+  </div>
+</div>
+
+<!-- ── TELA VAGAS ── -->
+<div class="locked-screen" id="screen-vagas" style="background:#f9f9f9;">
+  <div style="padding:16px 20px 8px;flex-shrink:0;">
+    <div style="font-size:11px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Vagas compatíveis</div>
+    <div style="font-size:20px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;" id="vagas-title">Buscando vagas...</div>
+    <div style="font-size:13px;color:#8e8e93;margin-top:3px;" id="vagas-sub">Filtrando por cargo e cidade</div>
+    <!-- Filtros -->
+    <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;">
+      <button class="vf-btn active" onclick="filterVagas('todas')">Todas</button>
+      <button class="vf-btn" onclick="filterVagas('remoto')">Remoto</button>
+      <button class="vf-btn" onclick="filterVagas('hibrido')">Híbrido</button>
+      <button class="vf-btn" onclick="filterVagas('presencial')">Presencial</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:10px 20px 24px;" id="vagas-list">
+    <div style="text-align:center;padding:48px 0;color:#aeaeb2;font-size:14px;" id="vagas-loading">
+      <div style="font-size:32px;margin-bottom:12px;">🔍</div>
+      Buscando vagas no mercado...
+    </div>
+  </div>
+</div>
+
+<!-- ── TELA NEGOCIAÇÃO ── -->
+<div class="locked-screen" id="screen-nego" style="background:#0d0d0d;">
+
+  <!-- Header do simulador -->
+  <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Simulador de Negociação</div>
+    <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Treine antes da reunião</div>
+
+    <!-- Seletor de nível -->
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="nl-btn active" id="nl-facil" onclick="setLevel('facil')">😊 Fácil</button>
+      <button class="nl-btn" id="nl-medio" onclick="setLevel('medio')">😐 Médio</button>
+      <button class="nl-btn locked-btn" id="nl-dificil" onclick="unlockLevel()">😤 Difícil 🔒</button>
+    </div>
+
+    <!-- Contexto da negociação -->
+    <div style="background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.4;" id="nego-context">
+      Carregando contexto...
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div style="flex:1;overflow-y:auto;padding:14px 16px;" id="nego-chat">
+    <div style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.3);font-size:14px;" id="nego-start">
+      <div style="font-size:32px;margin-bottom:8px;">🎯</div>
+      Escolha o nível e comece a treinar
+    </div>
+  </div>
+
+  <!-- Sugestões de resposta rápida -->
+  <div style="padding:8px 16px 4px;flex-shrink:0;display:none;" id="quick-replies-wrap">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="quick-replies"></div>
+  </div>
+
+  <!-- Input -->
+  <div style="padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,0.07);display:flex;gap:8px;flex-shrink:0;background:#0d0d0d;">
+    <input type="text" id="nego-input"
+      placeholder="Digite sua resposta..."
+      style="flex:1;padding:10px 14px;font-size:14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:22px;color:#fff;font-family:inherit;outline:none;"
+      onkeydown="if(event.key==='Enter')sendNego()">
+    <button onclick="startNego()" id="nego-send-btn"
+      style="padding:10px 18px;background:#1D9E75;color:#fff;border:none;border-radius:22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">
+      Iniciar
+    </button>
+  </div>
+</div>
+
+<!-- ── TELA PERFIL ── -->
+<div class="perfil-screen" id="screen-perfil">
+
+  <div class="perfil-header">
+    <div class="perfil-avatar-row">
+      <div class="perfil-avatar" id="perfil-avatar">?</div>
+      <div class="perfil-info">
+        <div class="perfil-name" id="perfil-name">Visitante</div>
+        <div class="perfil-email" id="perfil-email">Crie uma conta para salvar seu perfil</div>
+      </div>
+    </div>
+    <div class="perfil-tag-row" id="perfil-tags"></div>
+  </div>
+
+  <div class="perfil-body">
+
+    <!-- RESULTADO ATUAL -->
+    <div class="p-result-card" id="p-result-card">
+      <div class="p-card-label">Sua análise atual</div>
+      <div class="p-result-main">
+        <div class="p-result-pct below" id="p-pct">−18%</div>
+        <div class="p-result-desc" id="p-desc">abaixo do mercado</div>
+      </div>
+      <div class="p-result-row">
+        <span class="p-result-row-label">Seu pacote mensal</span>
+        <span class="p-result-row-val" id="p-you">—</span>
+      </div>
+      <div class="p-result-row">
+        <span class="p-result-row-label">Média do mercado</span>
+        <span class="p-result-row-val green" id="p-mkt">—</span>
+      </div>
+      <div class="p-result-row">
+        <span class="p-result-row-label">Deixando na mesa / mês</span>
+        <span class="p-result-row-val red" id="p-diff-mes">—</span>
+      </div>
+      <div class="p-result-row">
+        <span class="p-result-row-label">Perda acumulada / ano</span>
+        <span class="p-result-row-val red" id="p-diff-ano">—</span>
+      </div>
+    </div>
+
+    <!-- COMPARTILHAR RESULTADO -->
+    <div class="p-share-card">
+      <div class="p-share-top">
+        <div class="p-share-title">🎬 Compartilhar resultado</div>
+        <div class="p-share-desc">Gere seu card e poste nas redes — todo mundo quer saber se está ganhando pouco.</div>
+      </div>
+      <div class="p-share-btns">
+        <button class="p-btn-tiktok" onclick="shareResult('tiktok')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.72a8.16 8.16 0 004.77 1.52V6.8a4.85 4.85 0 01-1-.11z"/></svg>
+          Compartilhar no TikTok
+        </button>
+        <div class="p-btn-row">
+          <button class="p-btn-other" onclick="shareResult('instagram')">📸 Instagram</button>
+          <button class="p-btn-other" onclick="shareResult('whatsapp')">💬 WhatsApp</button>
+          <button class="p-btn-other" onclick="shareResult('copiar')">🔗 Copiar link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONVIDAR AMIGOS -->
+    <div class="p-invite-card">
+      <div class="p-invite-eyebrow">🎁 Convide amigos</div>
+      <div class="p-invite-title">Quanto seus amigos ganham?</div>
+      <div class="p-invite-desc">Envie o link e veja se eles também estão abaixo do mercado. Todo mundo descobre junto.</div>
+      <div class="p-invite-link-wrap">
+        <span class="p-invite-link" id="invite-link">qualmeusalario.com.br/i/marcos</span>
+        <button class="p-copy-btn" onclick="copyInvite()">Copiar</button>
+      </div>
+      <div class="p-invite-share-row">
+        <button class="p-invite-btn" onclick="inviteWhatsApp()">💬 WhatsApp</button>
+        <button class="p-invite-btn" onclick="inviteTelegram()">✈️ Telegram</button>
+        <button class="p-invite-btn" onclick="inviteLinkedIn()">💼 LinkedIn</button>
+      </div>
+      <div class="p-invite-stats" id="invite-stats">
+        <div class="p-stat"><div class="p-stat-num" id="stat-enviados">0</div><div class="p-stat-label">enviados</div></div>
+        <div class="p-stat"><div class="p-stat-num" id="stat-cadastros">0</div><div class="p-stat-label">cadastros</div></div>
+        <div class="p-stat"><div class="p-stat-num" id="stat-ranking">—</div><div class="p-stat-label">seu ranking</div></div>
+      </div>
+    </div>
+
+    <!-- CRIAR CONTA CTA (para não logados) -->
+    <div class="p-locked-cta" id="p-locked-cta">
+      <div class="p-locked-cta-title">💾 Salve seu perfil e histórico</div>
+      <div class="p-locked-cta-desc">Crie uma conta para monitorar seu salário todo mês e receber alertas quando o mercado mudar.</div>
+      <button class="p-locked-cta-btn" onclick="goSignup()">Criar conta grátis →</button>
+    </div>
+
+    <!-- CONFIGURAÇÕES -->
+    <div class="p-settings-card">
+      <div class="p-settings-row" onclick="goSignup()">
+        <div class="p-settings-left">
+          <div class="p-settings-icon green">🔔</div>
+          <div><div class="p-settings-name">Alertas de mercado</div><div class="p-settings-desc">Receba push quando mercado mudar</div></div>
+        </div>
+        <span class="p-settings-arrow">›</span>
+      </div>
+      <div class="p-settings-row" onclick="goSignup()">
+        <div class="p-settings-left">
+          <div class="p-settings-icon blue">📊</div>
+          <div><div class="p-settings-name">Histórico de análises</div><div class="p-settings-desc">Ver todas suas consultas anteriores</div></div>
+        </div>
+        <span class="p-settings-arrow">›</span>
+      </div>
+      <div class="p-settings-row" onclick="window.location.href='tela-1a-cargo.html'">
+        <div class="p-settings-left">
+          <div class="p-settings-icon orange">🔄</div>
+          <div><div class="p-settings-name">Nova análise</div><div class="p-settings-desc">Recalcular com novos dados</div></div>
+        </div>
+        <span class="p-settings-arrow">›</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-inicio" onclick="setTab('inicio')">
+    <div class="nav-icon-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="8" height="8" rx="2" fill="#1D9E75"/>
+        <rect x="13" y="3" width="8" height="8" rx="2" fill="#1D9E75" opacity="0.5"/>
+        <rect x="3" y="13" width="8" height="8" rx="2" fill="#1D9E75" opacity="0.5"/>
+        <rect x="13" y="13" width="8" height="8" rx="2" fill="#1D9E75" opacity="0.7"/>
+      </svg>
+    </div>
+    <span class="nav-label">Início</span>
+  </button>
+  <button class="nav-item" id="nav-tracker" onclick="setTab('tracker')">
+    <div class="nav-icon-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <polyline points="4,18 9,12 13,15 20,7" stroke="rgba(255,255,255,0.35)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="7" r="2" fill="rgba(255,255,255,0.35)"/>
+      </svg>
+    </div>
+    <span class="nav-label">Tracker</span>
+  </button>
+  <button class="nav-item" id="nav-vagas" onclick="setTab('vagas')">
+    <div class="nav-icon-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="7" width="20" height="14" rx="3" stroke="rgba(255,255,255,0.35)" stroke-width="2" fill="none"/>
+        <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="12" x2="12" y2="16" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="14" x2="14" y2="14" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-label">Vagas</span>
+  </button>
+  <button class="nav-item" id="nav-nego" onclick="setTab('nego')">
+    <div class="nav-icon-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+        <path d="M9 12l2 2 4-4" stroke="rgba(255,255,255,0.35)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="nav-label">Negociação</span>
+  </button>
+  <button class="nav-item" id="nav-perfil" onclick="setTab('perfil')">
+    <div class="nav-icon-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-label">Perfil</span>
+  </button>
+</nav>
+
+
+<!-- MODAL REWARD -->
+<div class="modal-bg" id="modal-bg" onclick="handleModalBgClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Gerar card para TikTok</div>
+    <div class="modal-desc">Assista um breve anúncio e receba seu card personalizado para compartilhar gratuitamente.</div>
+    <div class="ad-box">
+      <span>Anúncio patrocinado</span>
+      <span class="skip-timer" id="skip-timer">Fechar em 5s</span>
+    </div>
+    <button class="modal-cta" id="modal-cta" onclick="rewardDone()" disabled>Aguarde o anúncio...</button>
+    <button class="modal-skip" onclick="closeModal()">Agora não</button>
+  </div>
+</div>
+
+<script>
+const MODEL_LABEL = { presencial:'Presencial', hibrido:'Híbrido', remoto:'Remoto' };
+
+function fmt(n){ return 'R$ ' + Math.round(n).toLocaleString('pt-BR'); }
+
+/* ── CARREGA RESULTADO ── */
+const raw = localStorage.getItem('qms_result');
+if(!raw){ window.location.href = 'tela-1a-cargo.html'; }
+const R = JSON.parse(raw);
+
+/* ── TAGS ── */
+const cs = R.cargo.length > 22 ? R.cargo.slice(0,20)+'…' : R.cargo;
+document.getElementById('tag-cargo').textContent = cs;
+document.getElementById('tag-cidade').textContent = R.cidade.nomad ? 'Nomad Digital ✈️' : `${R.cidade.nome}, ${R.cidade.uf}`;
+document.getElementById('tag-model').textContent = R.cidade.nomad ? 'Remoto Internacional' : MODEL_LABEL[R.workModel];
+
+/* ── VERDICT ── */
+const pctEl  = document.getElementById('vpct');
+const descEl = document.getElementById('vdesc');
+pctEl.textContent = (R.diff >= 0 ? '+' : '') + R.diff + '%';
+pctEl.className = 'vpct ' + (R.diff >= 0 ? 'above' : 'below');
+descEl.textContent = R.diff >= 0 ? 'acima do pacote médio de mercado' : 'abaixo do pacote médio de mercado';
+
+/* ── REWARD CARD TEXT ── */
+const absD = Math.abs(R.diff);
+const dir  = R.diff >= 0 ? 'acima' : 'abaixo';
+document.getElementById('rc-title').textContent =
+  R.diff >= 0
+    ? `Você está ${absD}% ACIMA do mercado 🎉 — mostre isso!`
+    : `Seu salário está ${absD}% abaixo do mercado — gere seu card viral`;
+
+/* ── BREAKDOWN ── */
+const rows = [
+  { l:'Salário fixo',    y:R.my.fixo, m:R.mkt.fixo, always:true },
+  { l:'Comissão',        y:R.my.com,  m:R.mkt.com,  always:false },
+  { l:'PLR / Bônus',     y:R.my.plr,  m:R.mkt.plr,  always:false },
+  { l:'VR / VA',         y:R.my.vr,   m:R.mkt.vr,   always:false },
+  { l:'Outros',          y:R.my.out,  m:R.mkt.out,  always:false },
+];
+
+const bd   = document.getElementById('breakdown');
+const maxV = Math.max(...rows.map(r => Math.max(r.y, r.m))) * 1.12;
+
+rows.forEach(r => {
+  if(!r.always && r.y === 0 && r.m === 0) return;
+  const ab = r.y >= r.m;
+  const pY = Math.round((r.y / maxV) * 100);
+  const pM = Math.round((r.m / maxV) * 100);
+  const el = document.createElement('div');
+  el.className = 'brow';
+  el.innerHTML = `
+    <div class="bhead">
+      <span class="btitle">${r.l}</span>
+      <div class="bvals">
+        <span class="by ${ab?'ab':''}">${fmt(r.y)}</span>
+        <span class="bsep">vs</span>
+        <span class="bm">${fmt(r.m)} mkt</span>
+      </div>
+    </div>
+    <div class="btrack">
+      <div class="bfm" id="bfm-${r.l}"></div>
+      <div class="bfy ${ab?'ab':''}" id="bfy-${r.l}"></div>
+    </div>`;
+  bd.appendChild(el);
+  // Anima barras
+  setTimeout(() => {
+    document.getElementById(`bfm-${r.l}`).style.width = pM + '%';
+    document.getElementById(`bfy-${r.l}`).style.width = pY + '%';
+  }, 100);
+});
+
+// Total
+const abT = R.my.total >= R.mkt.total;
+const divEl = document.createElement('div'); divEl.className = 'total-divider'; bd.appendChild(divEl);
+const tr = document.createElement('div'); tr.className = 'total-row';
+tr.innerHTML = `<div class="tlabel">Total mensal</div><div class="tvals"><div class="tyou ${abT?'above':'below'}">${fmt(R.my.total)}</div><div class="tmkt">Mercado: ${fmt(R.mkt.total)}</div></div>`;
+bd.appendChild(tr);
+
+/* ── MODAL REWARD ── */
+let timerInt = null;
+
+function openRewardModal(){
+  document.getElementById('modal-bg').classList.add('open');
+  let secs = 5;
+  const t = document.getElementById('skip-timer');
+  const c = document.getElementById('modal-cta');
+  c.disabled = true; c.textContent = `Aguarde ${secs}s...`;
+  if(timerInt) clearInterval(timerInt);
+  timerInt = setInterval(() => {
+    secs--;
+    if(secs <= 0){
+      clearInterval(timerInt);
+      t.textContent = '';
+      c.disabled = false;
+      c.textContent = 'Gerar meu card →';
+    } else {
+      t.textContent = `Fechar em ${secs}s`;
+      c.textContent = `Aguarde ${secs}s...`;
+    }
+  }, 1000);
+}
+
+function rewardDone(){
+  closeModal();
+  window.location.href = 'tela-4-share.html';
+}
+const TABS = ['inicio','tracker','vagas','nego','perfil'];
+function setTab(tab){
+  const mainPhone  = document.querySelector('.phone');
+  const resultHero = mainPhone.querySelector('.result-hero');
+  const resultBody = mainPhone.querySelector('.result-body');
+  const topbar     = mainPhone.querySelector('.topbar');
+
+  // Esconde todas as telas overlay
+  TABS.forEach(t => {
+    const s = document.getElementById('screen-' + t);
+    if(s) s.classList.remove('visible');
+  });
+
+  if(tab === 'inicio'){
+    // Mostra conteúdo principal de volta
+    if(resultHero) resultHero.style.display = '';
+    if(resultBody) resultBody.style.display = '';
+    if(topbar)     topbar.style.display     = '';
+  } else {
+    // Abre a tela overlay (position:fixed — cobre o .phone)
+    const s = document.getElementById('screen-' + tab);
+    if(s) s.classList.add('visible');
+    if(tab === 'perfil') populatePerfil();
+    if(tab === 'vagas' && !vagasLoaded) loadVagas();
+    if(tab === 'nego')  initNego();
+  }
+
+  // Atualiza estado visual do navbar
+  TABS.forEach(t => {
+    const btn = document.getElementById('nav-' + t);
+    if(!btn) return;
+    btn.classList.toggle('active', t === tab);
+    btn.querySelector('.nav-label').style.color = t === tab ? '#1D9E75' : 'rgba(255,255,255,0.3)';
+    btn.querySelector('.nav-icon-wrap').style.background = t === tab ? 'rgba(29,158,117,0.18)' : 'transparent';
+  });
+}
+
+function goSignup(){ window.location.href = 'tela-4-share.html?signup=1'; }
+function goGoogle(){ window.location.href = 'tela-4-share.html?google=1'; }
+
+/* ════════════════════════════════════════
+   VAGAS — Adzuna API (grátis, 250 req/dia)
+   1. Cadastre em: developer.adzuna.com
+   2. Crie uma App → copie o App ID e App Key
+   3. Cole abaixo
+════════════════════════════════════════ */
+const ADZUNA_APP_ID  = '7e179384';
+const ADZUNA_APP_KEY = '3d838dfc1cc9ec16c0d4feff067fdd33';
+
+let vagasLoaded  = false;
+let allVagas     = [];
+let currentFilter = 'todas';
+
+/* Mock realista — usado quando as keys não estão configuradas */
+const MOCK_VAGAS = [
+  { titulo:'Desenvolvedor(a) Pleno — Backend Node.js', empresa:'Nubank',      cidade:'São Paulo, SP',      modelo:'remoto',     salario:11500, link:'https://nubank.com.br/carreiras',  tempo:'2h',  fonte:'Adzuna', descricao:'Vaga 100% remota para dev Pleno com experiência em Node.js, TypeScript e AWS.' },
+  { titulo:'Software Engineer — Full Stack',            empresa:'iFood',       cidade:'São Paulo, SP',      modelo:'hibrido',    salario:10800, link:'https://careers.ifood.com',         tempo:'5h',  fonte:'Adzuna', descricao:'Trabalhe em produtos usados por 50M de pessoas. Stack: React, Python, Kafka.' },
+  { titulo:'Desenvolvedor Pleno — Python/Django',       empresa:'Creditas',    cidade:'São Paulo, SP',      modelo:'remoto',     salario:10200, link:'https://creditas.com/vagas',        tempo:'1d',  fonte:'Adzuna', descricao:'Oportunidade em fintech líder. Foco em APIs REST, PostgreSQL e microsserviços.' },
+  { titulo:'Backend Developer — Java/Spring',           empresa:'BTG Pactual', cidade:'São Paulo, SP',      modelo:'hibrido',    salario:12000, link:'https://btgpactual.com/careers',   tempo:'3d',  fonte:'Adzuna', descricao:'Desenvolvimento de soluções para mercado financeiro. Java 17, Spring Boot, Kafka.' },
+  { titulo:'Dev Pleno — React Native',                  empresa:'PicPay',      cidade:'São Paulo, SP',      modelo:'remoto',     salario:10500, link:'https://picpay.com/vagas',         tempo:'6h',  fonte:'Adzuna', descricao:'Plataforma de pagamentos com +30M usuários. React Native, Redux, CI/CD.' },
+  { titulo:'Full Stack Developer',                      empresa:'Hotmart',     cidade:'Belo Horizonte, MG', modelo:'remoto',     salario:9800,  link:'https://hotmart.com/carreiras',    tempo:'2d',  fonte:'Adzuna', descricao:'Empresa de educação digital global. Vue.js, Node.js, microservices.' },
+  { titulo:'Desenvolvedor Pleno — Vue.js/Laravel',      empresa:'TOTVS',       cidade:'São Paulo, SP',      modelo:'hibrido',    salario:9200,  link:'https://totvs.com/vagas',          tempo:'4d',  fonte:'Adzuna', descricao:'Maior empresa de software do Brasil. Stack PHP/Laravel + Vue.js + MySQL.' },
+  { titulo:'Software Engineer — GoLang',                empresa:'PagSeguro',   cidade:'São Paulo, SP',      modelo:'hibrido',    salario:11800, link:'https://jobs.pagbank.com',         tempo:'1d',  fonte:'Adzuna', descricao:'Plataforma de pagamentos. Go, gRPC, Kubernetes, alto volume de transações.' },
+  { titulo:'Engenheiro(a) de Dados — Pleno',            empresa:'Magazine Luiza','cidade':'São Paulo, SP',   modelo:'hibrido',    salario:10000, link:'https://carreiras.magazineluiza.com.br', tempo:'3h', fonte:'Adzuna', descricao:'Data engineering em escala. Python, Spark, BigQuery, Airflow, dbt.' },
+  { titulo:'Product Manager — Plataforma',              empresa:'Mercado Livre','cidade':'São Paulo, SP',    modelo:'hibrido',    salario:14500, link:'https://jobs.mercadolibre.com',   tempo:'12h', fonte:'Adzuna', descricao:'PM para squad de plataforma de pagamentos. Metodologia ágil, OKRs, A/B testing.' },
+];
+
+async function loadVagas(){
+  vagasLoaded = true;
+  const RR       = JSON.parse(localStorage.getItem('qms_result') || '{}');
+  const cargo    = RR.cargo  || 'Desenvolvedor';
+  const cidade   = RR.cidade?.nome || 'São Paulo';
+  const mySal    = RR.my?.total || 0;
+  const cargoShort = cargo.split('(')[0].trim().split(' ').slice(0,3).join(' ');
+
+  document.getElementById('vagas-title').textContent = `Vagas para ${cargoShort}`;
+  document.getElementById('vagas-sub').textContent   =
+    `${cidade} e remoto · ${mySal > 0 ? 'acima de R$ ' + Math.round(mySal).toLocaleString('pt-BR') : 'compatíveis com seu perfil'}`;
+
+  let vagas = [];
+
+  if(ADZUNA_APP_ID && ADZUNA_APP_KEY){
+    try {
+      /* Adzuna Brasil endpoint — CORS aberto para leitura */
+      const q     = encodeURIComponent(cargoShort);
+      const loc   = encodeURIComponent(cidade.split(',')[0]);
+      const salMin = mySal > 0 ? `&salary_min=${Math.round(mySal * 0.9)}` : '';
+      const url   = `https://api.adzuna.com/v1/api/jobs/br/search/1`
+        + `?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`
+        + `&results_per_page=15&what=${q}&where=${loc}`
+        + `&sort_by=date&content-type=application/json${salMin}`;
+
+      const resp = await fetch(url);
+      if(resp.ok){
+        const data = await resp.json();
+        vagas = (data.results || []).map(j => {
+          const titleLow = (j.title || '').toLowerCase();
+          const locLow   = (j.location?.display_name || '').toLowerCase();
+          const modelo   = titleLow.includes('remot') || locLow.includes('remot') ? 'remoto'
+                         : titleLow.includes('híbri') || titleLow.includes('hibri') ? 'hibrido' : 'presencial';
+          return {
+            titulo:  j.title,
+            empresa: j.company?.display_name || 'Empresa',
+            cidade:  j.location?.display_name || cidade,
+            modelo,
+            salario: j.salary_min ? Math.round((j.salary_min + (j.salary_max || j.salary_min)) / 2) : 0,
+            link:    j.redirect_url || j.adref || '#',
+            tempo:   timeDiff(j.created),
+            fonte:   'Adzuna',
+            descricao: j.description ? j.description.replace(/<[^>]+>/g,'').slice(0,120) + '…' : '',
+          };
+        });
+      }
+    } catch(e){ console.warn('Adzuna API error:', e); }
+  }
+
+  // Fallback: mock
+  if(!vagas.length){
+    vagas = MOCK_VAGAS.map(v => ({ ...v }));
+  }
+
+  allVagas = vagas.map(v => ({ ...v, diffVsSal: mySal > 0 && v.salario > 0 ? v.salario - mySal : 0 }));
+  renderVagas('todas');
+}
+
+function timeDiff(dateStr){
+  if(!dateStr) return 'Recente';
+  const d = new Date(dateStr), now = new Date();
+  const h = Math.round((now - d) / 36e5);
+  if(h < 1)  return 'Agora';
+  if(h < 24) return h + 'h';
+  const days = Math.round(h / 24);
+  if(days < 7)  return days + 'd';
+  return Math.round(days / 7) + 'sem';
+}
+
+function filterVagas(f){
+  currentFilter = f;
+  document.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderVagas(f);
+}
+
+function renderVagas(filter){
+  const list = document.getElementById('vagas-list');
+  const RR   = JSON.parse(localStorage.getItem('qms_result') || '{}');
+  const mySal = RR.my?.total || 0;
+
+  let filtered = filter === 'todas' ? allVagas
+    : allVagas.filter(v => v.modelo === filter);
+
+  if(!filtered.length){
+    list.innerHTML = `<div style="text-align:center;padding:40px 0;color:#aeaeb2;font-size:14px;">
+      <div style="font-size:28px;margin-bottom:8px;">🔎</div>
+      Nenhuma vaga encontrada para esse filtro
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+
+  // Header com contagem
+  const header = document.createElement('div');
+  header.style.cssText = 'font-size:12px;color:#8e8e93;margin-bottom:10px;';
+  header.textContent = `${filtered.length} vaga${filtered.length > 1?'s':''} encontrada${filtered.length > 1?'s':''}`;
+  list.appendChild(header);
+
+  filtered.forEach(v => {
+    const above = v.salario > 0 && v.salario > mySal;
+    const diff  = v.salario > 0 && mySal > 0 ? v.salario - mySal : 0;
+    const modelLabel = { remoto:'Remoto 🏠', hibrido:'Híbrido 🔄', presencial:'Presencial 🏢' };
+
+    const card = document.createElement('div');
+    card.className = 'vaga-card';
+    card.innerHTML = `
+      <div class="vaga-top">
+        <div class="vaga-titulo">${v.titulo}</div>
+        <span class="vaga-modelo-tag ${v.modelo}">${modelLabel[v.modelo]||v.modelo}</span>
+      </div>
+      <div class="vaga-empresa">🏢 ${v.empresa} · ${v.cidade}</div>
+      ${v.descricao ? `<div style="font-size:12px;color:#8e8e93;line-height:1.4;margin-bottom:8px;">${v.descricao}</div>` : ''}
+      <div class="vaga-sal-row">
+        ${v.salario > 0
+          ? `<div class="vaga-sal">R$ ${Math.round(v.salario).toLocaleString('pt-BR')}</div>
+             ${diff !== 0 ? `<div class="vaga-diff ${diff < 0?'neg':''}">
+               ${diff >= 0 ? '+' : ''}R$ ${Math.abs(Math.round(diff)).toLocaleString('pt-BR')} vs você
+             </div>` : ''}` 
+          : `<div style="font-size:13px;color:#aeaeb2">Salário a combinar</div>`}
+      </div>
+      <div class="vaga-meta">
+        <span class="vaga-meta-item">🕐 ${v.tempo||'Recente'}</span>
+        ${v.fonte ? `<span class="vaga-meta-item">📌 ${v.fonte}</span>` : ''}
+      </div>
+      <a href="${v.link}" target="_blank" class="vaga-link-btn">Ver vaga →</a>`;
+    list.appendChild(card);
+  });
+
+  // CTA ao final
+  const cta = document.createElement('div');
+  cta.style.cssText = 'text-align:center;padding:20px 0 8px;';
+  cta.innerHTML = `<div style="font-size:13px;color:#8e8e93;margin-bottom:10px;">Ative alertas para receber novas vagas</div>
+    <button onclick="goSignup()" style="padding:11px 24px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Criar conta e ativar alertas →</button>`;
+  list.appendChild(cta);
+}
+
+/* ════════════════════════════════════════
+   NEGOCIAÇÃO — Claude AI
+   Usa a mesma Anthropic API key do projeto
+════════════════════════════════════════ */
+let negoLevel     = 'facil';
+let negoMessages  = [];
+let negoStarted   = false;
+let negoTyping    = false;
+
+const NIVEL_CONFIG = {
+  facil:   { label:'😊 RH receptivo', desc:'Gestor aberto, quer reter talentos',  color:'#1D9E75' },
+  medio:   { label:'😐 RH neutro',    desc:'Sem posição clara, precisa convencer', color:'#FAC775' },
+  dificil: { label:'😤 RH resistente',desc:'Argumenta contra. Modo premium',       color:'#E24B4A' },
+};
+
+function initNego(){
+  if(negoStarted) return;
+  const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
+  const cargo  = RR.cargo?.split('(')[0]?.trim() || 'seu cargo';
+  const pct    = Math.abs(RR.diff || 18);
+  const diffM  = RR.diffMes || 1800;
+  const cidade = RR.cidade?.nome || 'SP';
+  const mySal  = RR.my?.total || 0;
+  const mktSal = RR.mkt?.total || 0;
+
+  document.getElementById('nego-context').innerHTML =
+    `<strong style="color:#1D9E75">${cargo}</strong> em ${cidade} · seu salário está <strong style="color:#E24B4A">${pct}% abaixo</strong> do mercado` +
+    (diffM > 0 ? ` · diferença de <strong>R$ ${Math.round(diffM).toLocaleString('pt-BR')}/mês</strong>` : '');
+
+  // Esconde tela de início
+  const startEl = document.getElementById('nego-start');
+  if(startEl) startEl.style.display = 'none';
+}
+
+function setLevel(level){
+  if(level === 'dificil'){ unlockLevel(); return; }
+  negoLevel = level;
+  ['facil','medio','dificil'].forEach(l => {
+    const btn = document.getElementById('nl-' + l);
+    if(btn) btn.classList.toggle('active', l === level);
+  });
+  // Reinicia chat se já tinha começado
+  if(negoStarted){ resetNego(); }
+}
+
+function unlockLevel(){
+  // Premium feature — pede cadastro
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;z-index:100;';
+  modal.innerHTML = `<div style="width:100%;max-width:390px;margin:0 auto;background:#1a1a1a;border-radius:20px 20px 0 0;padding:24px 24px 36px;display:flex;flex-direction:column;gap:14px;">
+    <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;align-self:center;margin-bottom:4px;"></div>
+    <div style="font-size:20px;font-weight:800;color:#fff;">🔒 Modo Difícil</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.5;">O RH resistente usa contra-argumentos reais. Desbloqueie criando uma conta gratuita.</div>
+    <button onclick="goSignup()" style="padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Criar conta grátis →</button>
+    <button onclick="this.closest('[style]').remove()" style="background:none;border:none;font-size:14px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">Agora não</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function resetNego(){
+  negoMessages  = [];
+  negoStarted   = false;
+  document.getElementById('nego-chat').innerHTML = '';
+  document.getElementById('quick-replies-wrap').style.display = 'none';
+  document.getElementById('nego-send-btn').textContent = 'Iniciar';
+  document.getElementById('nego-input').value = '';
+}
+
+async function startNego(){
+  if(!negoStarted){
+    negoStarted = true;
+    document.getElementById('nego-send-btn').textContent = 'Enviar';
+    const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
+    const cargo  = RR.cargo?.split('(')[0]?.trim() || 'este cargo';
+    const pct    = Math.abs(RR.diff || 18);
+    const diffM  = Math.abs(RR.diffMes || 1800);
+    const mySal  = Math.round(RR.my?.total || 0);
+    const mktSal = Math.round(RR.mkt?.total || 0);
+    const cidade = RR.cidade?.nome || 'São Paulo';
+
+    const cfg = NIVEL_CONFIG[negoLevel];
+    negoMessages = [{
+      role:'user',
+      content:`Você é um(a) gestor(a) de RH de uma empresa brasileira e eu sou um(a) colaborador(a) pedindo aumento.
+Meu cargo: ${cargo} em ${cidade}.
+Meu salário atual: R$ ${mySal.toLocaleString('pt-BR')}/mês.
+Média do mercado: R$ ${mktSal.toLocaleString('pt-BR')}/mês.
+Meu salário está ${pct}% abaixo do mercado — diferença de R$ ${diffM.toLocaleString('pt-BR')}/mês.
+
+Perfil do RH (SIGA EXATAMENTE): ${cfg.desc}.
+Tom: ${negoLevel === 'facil' ? 'receptivo e empático, mas dentro do orçamento da empresa' : negoLevel === 'medio' ? 'neutro, precisa ser convencido com dados concretos' : 'resistente, usa contra-argumentos mas é realista'}.
+
+Regras:
+- Responda APENAS como o RH — sem narração, sem explicações fora do personagem
+- Respostas curtas (2-3 frases)
+- Use dados salariais reais da conversa
+- Se o colaborador apresentar bons argumentos, avance na negociação
+
+Comece a reunião: cumprimente e abra para o colaborador falar.`
+    }];
+
+    appendMsg('rh', '...', true);
+    const reply = await callClaude(negoMessages);
+    removeTyping();
+    negoMessages.push({ role:'assistant', content: reply });
+    appendMsg('rh', reply);
+    showQuickReplies([
+      'Pesquisei dados do mercado e tenho os números aqui',
+      'Meu salário está ' + pct + '% abaixo da média',
+      'Trouxe uma proposta concreta',
+    ]);
+  } else {
+    sendNego();
+  }
+}
+
+async function sendNego(){
+  const inp = document.getElementById('nego-input');
+  const text = inp.value.trim();
+  if(!text || negoTyping) return;
+  inp.value = '';
+  document.getElementById('quick-replies-wrap').style.display = 'none';
+
+  negoMessages.push({ role:'user', content: text });
+  appendMsg('user', text);
+  appendMsg('rh', '...', true);
+  negoTyping = true;
+
+  const history = negoMessages.slice(0,-1).concat([{ role:'user', content: text }]);
+  const reply = await callClaude(history);
+  removeTyping();
+  negoTyping = false;
+  negoMessages.push({ role:'assistant', content: reply });
+  appendMsg('rh', reply);
+
+  // Quick replies dinâmicas baseadas na resposta
+  if(reply.toLowerCase().includes('quanto') || reply.toLowerCase().includes('proposta')){
+    const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
+    const ask = Math.round((RR.mkt?.total || (RR.my?.total || 6000) * 1.2));
+    showQuickReplies([
+      `Estou pedindo R$ ${ask.toLocaleString('pt-BR')} por mês`,
+      'Posso mostrar as vagas concorrentes pagando mais',
+      'Estou aberto a discutir outros benefícios também',
+    ]);
+  } else if(reply.toLowerCase().includes('considerar') || reply.toLowerCase().includes('levar')){
+    showQuickReplies([
+      'Quando posso ter uma resposta?',
+      'Posso ajudar a construir o caso para a diretoria',
+      'Obrigado, aguardo o retorno',
+    ]);
+  } else {
+    showQuickReplies([
+      'Entendo, mas os dados do mercado são claros',
+      'Posso apresentar mais evidências',
+      'O que seria necessário para aprovar?',
+    ]);
+  }
+}
+
+async function callClaude(messages){
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages: messages.map((m,i) => i === 0
+          ? { role:'user',      content: m.content }
+          : { role: m.role === 'user' ? 'user' : 'assistant', content: m.content }
+        )
+      })
+    });
+    const data = await resp.json();
+    return data.content?.[0]?.text || 'Entendo. Continue.';
+  } catch(e){
+    // Fallback com respostas fixas por nível
+    const fallbacks = {
+      facil:   ['Obrigado por trazer isso. Me conta mais sobre sua pesquisa de mercado.','Entendo sua preocupação. Quais dados você encontrou?','Faz sentido. Vamos ver o que podemos fazer.'],
+      medio:   ['Interessante. Você tem dados concretos para embasar isso?','Precisamos de mais informações. O que você está propondo exatamente?','Vou precisar analisar melhor. Qual seria sua proposta?'],
+      dificil: ['O momento não é o mais favorável para reajustes.','Sua entrega tem sido boa, mas precisamos equilibrar com o orçamento.','Que outros benefícios você estaria considerando além do salário?']
+    };
+    const opts = fallbacks[negoLevel] || fallbacks.facil;
+    return opts[Math.floor(Math.random() * opts.length)];
+  }
+}
+
+function appendMsg(from, text, typing=false){
+  const chat   = document.getElementById('nego-chat');
+  const div    = document.createElement('div');
+  div.className = 'chat-msg ' + from;
+  if(typing){
+    div.id = 'typing-bubble';
+    div.innerHTML = `<div class="chat-avatar ${from}-av">${from==='rh'?'👔':'🧑'}</div>
+      <div class="chat-bubble"><div class="chat-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  } else {
+    const label = from === 'rh' ? 'RH' : 'Você';
+    div.innerHTML = `<div class="chat-avatar ${from}-av">${from==='rh'?'👔':'🧑'}</div>
+      <div><div class="chat-name">${label}</div><div class="chat-bubble">${text}</div></div>`;
+  }
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping(){
+  const t = document.getElementById('typing-bubble');
+  if(t) t.remove();
+}
+
+function showQuickReplies(replies){
+  const wrap = document.getElementById('quick-replies-wrap');
+  const cont = document.getElementById('quick-replies');
+  cont.innerHTML = '';
+  replies.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'qr-chip';
+    btn.textContent = r;
+    btn.onclick = () => {
+      document.getElementById('nego-input').value = r;
+      sendNego();
+    };
+    cont.appendChild(btn);
+  });
+  wrap.style.display = 'block';
+}
+
+/* ── POPULA PERFIL ── */
+function populatePerfil(){
+  const RR = JSON.parse(localStorage.getItem('qms_result') || 'null');
+  if(!RR) return;
+  const ab  = RR.diff >= 0;
+  const fmtP = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  const MODEL_LBL = { presencial:'Presencial', hibrido:'Híbrido', remoto:'Remoto' };
+
+  // Avatar iniciais
+  const words   = RR.cargo.split(' ');
+  const initials = words.length >= 2 ? words[0][0] + words[words.length-1][0] : words[0].slice(0,2);
+  document.getElementById('perfil-avatar').textContent = initials.toUpperCase();
+
+  // Sessão
+  const sessionRaw = localStorage.getItem('qms_session');
+  if(sessionRaw){
+    try {
+      const sess = JSON.parse(sessionRaw);
+      const name = sess.user?.user_metadata?.full_name || sess.user?.email?.split('@')[0] || 'Usuário';
+      document.getElementById('perfil-name').textContent  = name;
+      document.getElementById('perfil-email').textContent = sess.user?.email || '';
+      const cta = document.getElementById('p-locked-cta');
+      if(cta) cta.style.display = 'none';
+      document.getElementById('invite-link').textContent = 'qualmeusalario.com.br/i/' + name.toLowerCase().replace(/\s+/g,'-');
+    } catch(e){}
+  }
+
+  // Tags
+  const tagsEl    = document.getElementById('perfil-tags');
+  tagsEl.innerHTML = '';
+  const cargoShort = RR.cargo.split('(')[0].trim();
+  const cidadeStr  = RR.cidade?.nomad ? 'Nomad ✈️' : (RR.cidade?.nome || '');
+  const modelStr   = RR.cidade?.nomad ? 'Remoto Int.' : (MODEL_LBL[RR.workModel] || '');
+  [[cargoShort,'green'],[cidadeStr,'gray'],[modelStr,'gray']].forEach(([t,c]) => {
+    if(!t) return;
+    const el = document.createElement('span');
+    el.className = 'perfil-tag ' + c; el.textContent = t;
+    tagsEl.appendChild(el);
+  });
+
+  // Result card
+  const pctEl = document.getElementById('p-pct');
+  pctEl.textContent = (ab ? '+' : '−') + Math.abs(RR.diff) + '%';
+  pctEl.className   = 'p-result-pct ' + (ab ? 'above' : 'below');
+  document.getElementById('p-desc').textContent = ab ? 'acima do mercado' : 'abaixo do mercado';
+  document.getElementById('p-you').textContent  = fmtP(RR.my.total);
+  document.getElementById('p-mkt').textContent  = fmtP(RR.mkt.total);
+  const diffMes = Math.abs(Math.round(RR.mkt.total - RR.my.total));
+  document.getElementById('p-diff-mes').textContent = (ab?'+':'') + fmtP(diffMes);
+  document.getElementById('p-diff-ano').textContent = (ab?'+':'') + fmtP(diffMes*12);
+  document.getElementById('p-diff-mes').className = 'p-result-row-val ' + (ab?'green':'red');
+  document.getElementById('p-diff-ano').className = 'p-result-row-val ' + (ab?'green':'red');
+}
+
+/* ── SHARE RESULT ── */
+function buildShareText(){
+  const RR = JSON.parse(localStorage.getItem('qms_result') || 'null');
+  if(!RR) return 'Descubra quanto você vale no mercado → qualmeusalario.com.br';
+  const dir = RR.diff >= 0 ? 'acima' : 'abaixo';
+  return `Meu salário está ${Math.abs(RR.diff)}% ${dir} do mercado para ${RR.cargo?.split('(')[0]?.trim()} em ${RR.cidade?.nome || ''}. Calcula o seu → qualmeusalario.com.br`;
+}
+function shareResult(channel){
+  const text = buildShareText();
+  if(channel === 'tiktok' || channel === 'instagram'){
+    if(navigator.share){ navigator.share({ title:'Qual Meu Salário', text, url:'https://qualmeusalario.com.br' }).catch(()=>{}); }
+    else { window.location.href = 'tela-4-share.html'; }
+  } else if(channel === 'whatsapp'){
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  } else if(channel === 'copiar'){
+    navigator.clipboard?.writeText('https://qualmeusalario.com.br').then(()=>alert('Link copiado!')).catch(()=>alert('Copie: qualmeusalario.com.br'));
+  }
+}
+
+/* ── CONVITE ── */
+function copyInvite(){
+  const link = document.getElementById('invite-link').textContent;
+  navigator.clipboard?.writeText('https://' + link).then(() => {
+    const btn = document.querySelector('.p-copy-btn');
+    btn.textContent = 'Copiado ✓'; btn.style.background = '#0F6E56';
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.style.background = '#1D9E75'; }, 2000);
+  }).catch(() => alert('Copie: https://' + link));
+}
+function inviteWhatsApp(){
+  const link = document.getElementById('invite-link').textContent;
+  const RR   = JSON.parse(localStorage.getItem('qms_result') || '{}');
+  const dir  = (RR.diff||0) >= 0 ? 'acima' : 'abaixo';
+  const msg  = `Descobre quanto você vale no mercado! Meu salário está ${Math.abs(RR.diff||0)}% ${dir} da média. Testa o seu: https://${link}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+function inviteTelegram(){
+  const link = document.getElementById('invite-link').textContent;
+  window.open('https://t.me/share/url?url=https://' + link + '&text=' + encodeURIComponent('Descobre quanto você vale no mercado! 🎯'), '_blank');
+}
+function inviteLinkedIn(){
+  window.open('https://www.linkedin.com/sharing/share-offsite/?url=https://qualmeusalario.com.br', '_blank');
+}
+
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('open');
+  if(timerInt) clearInterval(timerInt);
+}
+
+function handleModalBgClick(e){
+  if(e.target === document.getElementById('modal-bg')) closeModal();
+}
+</script>
+</body>
+</html>
