@@ -673,71 +673,179 @@
 
 <!-- ── TELA VAGAS ── -->
 <div class="locked-screen" id="screen-vagas" style="background:#f9f9f9;">
-  <div style="padding:16px 20px 8px;flex-shrink:0;">
-    <div style="font-size:11px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Vagas compatíveis</div>
-    <div style="font-size:20px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;" id="vagas-title">Buscando vagas...</div>
-    <div style="font-size:13px;color:#8e8e93;margin-top:3px;" id="vagas-sub">Filtrando por cargo e cidade</div>
-    <!-- Filtros -->
-    <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;">
-      <button class="vf-btn active" onclick="filterVagas('todas')">Todas</button>
-      <button class="vf-btn" onclick="filterVagas('remoto')">Remoto</button>
-      <button class="vf-btn" onclick="filterVagas('hibrido')">Híbrido</button>
-      <button class="vf-btn" onclick="filterVagas('presencial')">Presencial</button>
+
+  <!-- GATE 1: Login (usuário não logado) -->
+  <div id="vagas-gate-login" style="display:none; flex:1; flex-direction:column; background:#fff;">
+    <div class="locked-blur-content" style="flex:1;">
+      <div class="fake-card"><div class="fake-header"><div class="fake-title" style="width:55%"></div><div style="height:20px;width:60px;background:#e8f8f2;border-radius:20px;border:1px solid #5DCAA5"></div></div><div class="fake-line short"></div><div class="fake-row"><div style="height:20px;width:90px;background:#1D9E75;border-radius:6px;opacity:0.35"></div></div></div>
+      <div class="fake-card"><div class="fake-header"><div class="fake-title" style="width:48%"></div><div style="height:20px;width:60px;background:#E6F1FB;border-radius:20px;border:1px solid #85B7EB"></div></div><div class="fake-line short"></div></div>
+      <div class="fake-card"><div class="fake-opp-line1"></div><div class="fake-opp-line2"></div></div>
+    </div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,0.5) 15%,rgba(255,255,255,0.97) 30%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 28px;overflow-y:auto;">
+      <div class="lock-icon-circle">💼</div>
+      <div class="lock-title">Vagas acima da sua faixa</div>
+      <div class="lock-desc">Crie uma conta gratuita para ver vagas compatíveis com seu cargo e cidade, pagando mais do que você ganha.</div>
+      <div class="lock-perks">
+        <div class="lock-perk"><div class="lock-perk-icon">💰</div><div class="lock-perk-text"><strong>Só vagas que pagam mais</strong> que o seu salário atual</div></div>
+        <div class="lock-perk"><div class="lock-perk-icon">🔔</div><div class="lock-perk-text"><strong>Alertas em tempo real</strong> quando surgir vaga nova compatível</div></div>
+        <div class="lock-perk"><div class="lock-perk-icon">📍</div><div class="lock-perk-text"><strong>Filtradas por cargo e cidade</strong> — remoto, híbrido ou presencial</div></div>
+      </div>
+      <button class="lock-cta" onclick="goSignup()">Criar conta grátis →</button>
+      <button class="lock-google" onclick="goGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.615 24 12.255 24z"/><path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"/><path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+        Entrar com Google
+      </button>
+      <button class="lock-later" onclick="setTab('inicio')">Agora não</button>
     </div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:10px 20px 24px;" id="vagas-list">
-    <div style="text-align:center;padding:48px 0;color:#aeaeb2;font-size:14px;" id="vagas-loading">
-      <div style="font-size:32px;margin-bottom:12px;">🔍</div>
-      Buscando vagas no mercado...
+
+  <!-- GATE 2: Reward Ad (usuário logado, ainda não assistiu) -->
+  <div id="vagas-gate-reward" style="display:none; flex-direction:column; background:#0a0a0a; flex:1;">
+    <div style="padding:24px 22px 0;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Anúncio</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.3px;margin-bottom:4px;">Liberar vagas compatíveis</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);">Assista o anúncio para ver vagas filtradas para o seu perfil</div>
+    </div>
+    <!-- Preview borrado -->
+    <div style="margin:16px 22px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;filter:blur(5px);">
+      <div style="height:14px;width:60%;background:#1D9E75;border-radius:6px;opacity:0.3;margin-bottom:10px"></div>
+      <div style="height:10px;width:40%;background:rgba(255,255,255,0.2);border-radius:5px;margin-bottom:8px"></div>
+      <div style="height:10px;width:70%;background:rgba(255,255,255,0.1);border-radius:5px;margin-bottom:16px"></div>
+      <div style="height:20px;width:90px;background:#1D9E75;border-radius:20px;opacity:0.4"></div>
+    </div>
+    <!-- Ad box -->
+    <div style="margin:0 22px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:12px;height:90px;display:flex;align-items:center;justify-content:center;position:relative;">
+      <div style="font-size:10px;position:absolute;top:8px;left:12px;color:rgba(255,255,255,0.18);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Patrocinado</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.2);">Espaço do anúncio AdMob</div>
+      <div id="vagas-skip-badge" style="position:absolute;top:8px;right:12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:20px;">30s</div>
+    </div>
+    <!-- Progress -->
+    <div style="padding:0 22px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);" id="vagas-reward-label">Preparando vagas para você...</div>
+        <div style="font-size:18px;font-weight:800;color:#1D9E75;" id="vagas-reward-secs">30</div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">
+        <div id="vagas-reward-bar" style="height:4px;background:#1D9E75;border-radius:2px;width:0%;transition:width 1s linear;"></div>
+      </div>
+    </div>
+    <!-- CTA (aparece após 30s) -->
+    <div style="padding:16px 22px;" id="vagas-reward-cta" style="display:none">
+      <button onclick="showVagasList()" style="width:100%;padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">Ver minhas vagas →</button>
     </div>
   </div>
+
+  <!-- CONTEÚDO REAL das vagas (após reward) -->
+  <div id="vagas-content" style="display:none; flex-direction:column; flex:1; min-height:100%;">
+    <div style="padding:16px 20px 8px;flex-shrink:0;">
+      <div style="font-size:11px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Vagas compatíveis</div>
+      <div style="font-size:20px;font-weight:800;color:#1a1a1a;letter-spacing:-0.3px;" id="vagas-title">Buscando vagas...</div>
+      <div style="font-size:13px;color:#8e8e93;margin-top:3px;" id="vagas-sub">Filtrando por cargo e cidade</div>
+      <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;">
+        <button class="vf-btn active" onclick="filterVagas('todas',event)">Todas</button>
+        <button class="vf-btn" onclick="filterVagas('remoto',event)">Remoto</button>
+        <button class="vf-btn" onclick="filterVagas('hibrido',event)">Híbrido</button>
+        <button class="vf-btn" onclick="filterVagas('presencial',event)">Presencial</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:10px 20px 100px;" id="vagas-list">
+      <div style="text-align:center;padding:48px 0;color:#aeaeb2;font-size:14px;" id="vagas-loading">
+        <div style="font-size:32px;margin-bottom:12px;">🔍</div>
+        Buscando vagas no mercado...
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── TELA NEGOCIAÇÃO ── -->
 <div class="locked-screen" id="screen-nego" style="background:#0d0d0d;">
 
-  <!-- Header do simulador -->
-  <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Simulador de Negociação</div>
-    <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Treine antes da reunião</div>
-
-    <!-- Seletor de nível -->
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="nl-btn active" id="nl-facil" onclick="setLevel('facil')">😊 Fácil</button>
-      <button class="nl-btn" id="nl-medio" onclick="setLevel('medio')">😐 Médio</button>
-      <button class="nl-btn locked-btn" id="nl-dificil" onclick="unlockLevel()">😤 Difícil 🔒</button>
+  <!-- GATE: Login -->
+  <div id="nego-gate-login" style="display:none;flex:1;flex-direction:column;background:#0d0d0d;">
+    <div class="locked-blur-content" style="filter:blur(6px);flex:1;padding:16px;">
+      <div style="height:80px;background:rgba(255,255,255,0.04);border-radius:14px;margin-bottom:12px;"></div>
+      <div style="height:120px;background:rgba(255,255,255,0.06);border-radius:14px;margin-bottom:12px;"></div>
+      <div style="height:60px;background:rgba(29,158,117,0.1);border-radius:14px;"></div>
     </div>
-
-    <!-- Contexto da negociação -->
-    <div style="background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.4;" id="nego-context">
-      Carregando contexto...
-    </div>
-  </div>
-
-  <!-- Chat -->
-  <div style="flex:1;overflow-y:auto;padding:14px 16px;" id="nego-chat">
-    <div style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.3);font-size:14px;" id="nego-start">
-      <div style="font-size:32px;margin-bottom:8px;">🎯</div>
-      Escolha o nível e comece a treinar
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,13,13,0) 0%,rgba(13,13,13,0.9) 30%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:80px 28px 32px;">
+      <div class="lock-icon-circle">🎯</div>
+      <div class="lock-title" style="color:#fff;">Simulador de negociação com IA</div>
+      <div class="lock-desc">Treine com uma IA que simula um RH. Crie sua conta para usar os créditos de simulação.</div>
+      <div class="lock-perks">
+        <div class="lock-perk"><div class="lock-perk-icon">🤖</div><div class="lock-perk-text" style="color:rgba(255,255,255,0.7)"><strong style="color:#fff;">3 níveis</strong> — RH receptivo, neutro e resistente</div></div>
+        <div class="lock-perk"><div class="lock-perk-icon">🎁</div><div class="lock-perk-text" style="color:rgba(255,255,255,0.7)"><strong style="color:#fff;">Créditos grátis</strong> — ganhe assistindo anúncios</div></div>
+      </div>
+      <button class="lock-cta" onclick="goSignup()">Criar conta grátis →</button>
+      <button class="lock-google" onclick="goGoogle()" style="background:rgba(255,255,255,0.06);color:#fff;border-color:rgba(255,255,255,0.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.615 24 12.255 24z"/><path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"/><path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+        Entrar com Google
+      </button>
+      <button class="lock-later" onclick="setTab('inicio')" style="color:rgba(255,255,255,0.3);">Agora não</button>
     </div>
   </div>
 
-  <!-- Sugestões de resposta rápida -->
-  <div style="padding:8px 16px 4px;flex-shrink:0;display:none;" id="quick-replies-wrap">
-    <div style="display:flex;gap:6px;flex-wrap:wrap;" id="quick-replies"></div>
+  <!-- CONTEÚDO REAL da negociação -->
+  <div id="nego-content" style="display:none; flex-direction:column; flex:1;">
+    <!-- Header com créditos -->
+    <div style="padding:14px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Simulador de Negociação</div>
+          <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Treine antes da reunião</div>
+        </div>
+        <!-- Badge de créditos -->
+        <div id="credits-badge" onclick="showCreditsInfo()" style="display:flex;align-items:center;gap:6px;background:rgba(29,158,117,0.15);border:1px solid rgba(29,158,117,0.25);border-radius:20px;padding:6px 12px;cursor:pointer;">
+          <span style="font-size:14px;">⚡</span>
+          <span id="credits-display" style="font-size:14px;font-weight:800;color:#1D9E75;">3</span>
+          <span style="font-size:11px;color:rgba(255,255,255,0.4);">créditos</span>
+        </div>
+      </div>
+
+      <!-- Seletor de nível com custo -->
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="nl-btn active" id="nl-facil" onclick="setLevel('facil')">
+          😊 Fácil <span style="font-size:10px;opacity:0.6;">1⚡</span>
+        </button>
+        <button class="nl-btn" id="nl-medio" onclick="setLevel('medio')">
+          😐 Médio <span style="font-size:10px;opacity:0.6;">2⚡</span>
+        </button>
+        <button class="nl-btn" id="nl-dificil" onclick="setLevel('dificil')">
+          😤 Difícil <span style="font-size:10px;opacity:0.6;">5⚡</span>
+        </button>
+      </div>
+
+      <div style="background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.4;" id="nego-context">
+        Carregando contexto...
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div style="flex:1;overflow-y:auto;padding:14px 16px;" id="nego-chat">
+      <div style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.3);font-size:14px;" id="nego-start">
+        <div style="font-size:32px;margin-bottom:8px;">🎯</div>
+        Escolha o nível e clique em Iniciar
+      </div>
+    </div>
+
+    <!-- Quick replies -->
+    <div style="padding:8px 16px 4px;flex-shrink:0;display:none;" id="quick-replies-wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="quick-replies"></div>
+    </div>
+
+    <!-- Input -->
+    <div style="padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,0.07);display:flex;gap:8px;flex-shrink:0;background:#0d0d0d;">
+      <input type="text" id="nego-input"
+        placeholder="Digite sua resposta..."
+        style="flex:1;padding:10px 14px;font-size:14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:22px;color:#fff;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter')sendNego()">
+      <button onclick="startNego()" id="nego-send-btn"
+        style="padding:10px 18px;background:#1D9E75;color:#fff;border:none;border-radius:22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">
+        Iniciar
+      </button>
+    </div>
   </div>
 
-  <!-- Input -->
-  <div style="padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,0.07);display:flex;gap:8px;flex-shrink:0;background:#0d0d0d;">
-    <input type="text" id="nego-input"
-      placeholder="Digite sua resposta..."
-      style="flex:1;padding:10px 14px;font-size:14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:22px;color:#fff;font-family:inherit;outline:none;"
-      onkeydown="if(event.key==='Enter')sendNego()">
-    <button onclick="startNego()" id="nego-send-btn"
-      style="padding:10px 18px;background:#1D9E75;color:#fff;border:none;border-radius:22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">
-      Iniciar
-    </button>
-  </div>
 </div>
 
 <!-- ── TELA PERFIL ── -->
@@ -925,6 +1033,79 @@
   </div>
 </div>
 
+<!-- ── INTERSTITIAL AD (aparece após 3 min) ── -->
+<div id="interstitial-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:390px;margin:0 auto;background:#0a0a0a;border-radius:20px 20px 0 0;padding:24px 24px 36px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);">
+    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;text-align:center;">Anúncio — Patrocinado</div>
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:12px;height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative;">
+      <div style="font-size:12px;color:rgba(255,255,255,0.18);">Espaço do anúncio AdMob</div>
+      <div id="inter-countdown" style="position:absolute;top:8px;right:12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:20px;">30s</div>
+    </div>
+    <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-bottom:16px;">
+      <div id="inter-bar" style="height:4px;background:#1D9E75;border-radius:2px;width:0%;transition:width 1s linear;"></div>
+    </div>
+    <button id="inter-close-btn" onclick="closeInterstitial()" disabled
+      style="width:100%;padding:14px;background:#1a1a1a;color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:14px;font-size:15px;font-weight:700;cursor:not-allowed;font-family:inherit;">
+      Aguarde 30s para continuar...
+    </button>
+  </div>
+</div>
+
+<!-- ── MODAL: SEM CRÉDITOS → REWARD ── -->
+<div id="credits-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center;">
+  <div style="width:100%;max-width:390px;background:#161616;border-radius:24px 24px 0 0;padding:24px 24px 36px;">
+    <div style="width:44px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:0 auto 20px;"></div>
+
+    <!-- Estado: sem créditos -->
+    <div id="credits-modal-empty" style="text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">⚡</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px;">Sem créditos</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:24px;line-height:1.5;">Assista um anúncio de 30s e ganhe <strong style="color:#1D9E75;">2 créditos</strong> para continuar simulando.</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div style="flex:1;background:#1a1a1a;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:18px;font-weight:800;color:#1D9E75;">1⚡</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">Fácil</div>
+        </div>
+        <div style="flex:1;background:#1a1a1a;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:18px;font-weight:800;color:#FAC775;">2⚡</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">Médio</div>
+        </div>
+        <div style="flex:1;background:#1a1a1a;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:18px;font-weight:800;color:#E24B4A;">5⚡</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px;">Difícil</div>
+        </div>
+      </div>
+      <button onclick="startCreditsReward()" style="width:100%;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">
+        ▶ Assistir anúncio — ganhar 2⚡
+      </button>
+      <button onclick="closeCreditsModal()" style="background:none;border:none;font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer;font-family:inherit;margin-top:12px;">Agora não</button>
+    </div>
+
+    <!-- Estado: assistindo reward -->
+    <div id="credits-modal-watching" style="display:none;text-align:center;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;">Anúncio</div>
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:12px;height:100px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.18);">Espaço do anúncio AdMob</div>
+        <div id="credits-reward-countdown" style="position:absolute;top:8px;right:12px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:20px;">30s</div>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-bottom:14px;">
+        <div id="credits-reward-bar" style="height:4px;background:#1D9E75;border-radius:2px;width:0%;transition:width 1s linear;"></div>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);">Aguarde o anúncio terminar para ganhar seus créditos</div>
+    </div>
+
+    <!-- Estado: créditos ganhos -->
+    <div id="credits-modal-earned" style="display:none;text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <div style="font-size:22px;font-weight:900;color:#1D9E75;margin-bottom:8px;">+2 créditos!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:24px;">Seus créditos foram adicionados.</div>
+      <button onclick="closeCreditsModal(true)" style="width:100%;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;">
+        Continuar simulando →
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 const MODEL_LABEL = { presencial:'Presencial', hibrido:'Híbrido', remoto:'Remoto' };
 
@@ -1031,34 +1212,176 @@ function rewardDone(){
   closeModal();
   window.location.href = 'tela-4-share.html';
 }
+
+/* ════════════════════════════════════════════════════════
+   SISTEMA DE SESSÃO
+   Simula verificação de login via localStorage
+════════════════════════════════════════════════════════ */
+function isLoggedIn(){
+  return !!localStorage.getItem('qms_session');
+}
+
+/* ════════════════════════════════════════════════════════
+   SISTEMA DE CRÉDITOS
+   Fácil=1  Médio=2  Difícil=5
+   Ganhar: assistir reward ad → +2 créditos
+════════════════════════════════════════════════════════ */
+const LEVEL_COST = { facil:1, medio:2, dificil:5 };
+let negoLevel = 'facil';
+let creditsRewardTimer = null;
+
+function getCredits(){ return parseInt(localStorage.getItem('qms_credits') || '3'); }
+function setCredits(n){ localStorage.setItem('qms_credits', String(Math.max(0,n))); updateCreditsBadge(); }
+function updateCreditsBadge(){
+  const el = document.getElementById('credits-display');
+  if(el) el.textContent = getCredits();
+}
+
+function showCreditsInfo(){
+  const c = getCredits();
+  if(c === 0){ openCreditsModal(); return; }
+  alert(`Você tem ${c} crédito${c!==1?'s':''}.\n\nFácil = 1⚡  |  Médio = 2⚡  |  Difícil = 5⚡\n\nAssista um anúncio para ganhar +2 créditos.`);
+}
+
+function openCreditsModal(){
+  document.getElementById('credits-modal-empty').style.display    = 'block';
+  document.getElementById('credits-modal-watching').style.display = 'none';
+  document.getElementById('credits-modal-earned').style.display   = 'none';
+  const bg = document.getElementById('credits-modal-bg');
+  bg.style.display = 'flex';
+  bg.style.alignItems = 'flex-end';
+}
+function closeCreditsModal(startAfter){
+  document.getElementById('credits-modal-bg').style.display = 'none';
+  if(creditsRewardTimer){ clearInterval(creditsRewardTimer); creditsRewardTimer=null; }
+  if(startAfter && getCredits() >= LEVEL_COST[negoLevel]) startNego();
+}
+
+function startCreditsReward(){
+  document.getElementById('credits-modal-empty').style.display    = 'none';
+  document.getElementById('credits-modal-watching').style.display = 'block';
+  let secs = 30;
+  const bar       = document.getElementById('credits-reward-bar');
+  const countdown = document.getElementById('credits-reward-countdown');
+  if(creditsRewardTimer) clearInterval(creditsRewardTimer);
+  creditsRewardTimer = setInterval(() => {
+    secs--;
+    const pct = Math.round(((30-secs)/30)*100);
+    bar.style.width = pct + '%';
+    countdown.textContent = secs + 's';
+    if(secs <= 0){
+      clearInterval(creditsRewardTimer);
+      setCredits(getCredits() + 2);
+      document.getElementById('credits-modal-watching').style.display = 'none';
+      document.getElementById('credits-modal-earned').style.display   = 'block';
+    }
+  }, 1000);
+}
+
+/* ════════════════════════════════════════════════════════
+   INTERSTITIAL AD — dispara após 3 minutos de uso
+════════════════════════════════════════════════════════ */
+let interstitialShown  = false;
+let interstitialTimer  = null;
+let interCountTimer    = null;
+
+function startInterstitialTimer(){
+  if(interstitialShown) return;
+  clearTimeout(interstitialTimer);
+  interstitialTimer = setTimeout(showInterstitial, 3 * 60 * 1000); // 3 min
+}
+
+function showInterstitial(){
+  if(interstitialShown) return;
+  interstitialShown = true;
+  const bg  = document.getElementById('interstitial-bg');
+  const btn = document.getElementById('inter-close-btn');
+  const bar = document.getElementById('inter-bar');
+  const cnt = document.getElementById('inter-countdown');
+  bg.style.display = 'flex';
+  btn.disabled = true;
+  btn.textContent = 'Aguarde 30s para continuar...';
+  btn.style.color = 'rgba(255,255,255,0.3)';
+  btn.style.cursor = 'not-allowed';
+  let secs = 30;
+  if(interCountTimer) clearInterval(interCountTimer);
+  interCountTimer = setInterval(() => {
+    secs--;
+    bar.style.width = Math.round(((30-secs)/30)*100) + '%';
+    cnt.textContent = secs + 's';
+    if(secs <= 0){
+      clearInterval(interCountTimer);
+      btn.disabled = false;
+      btn.textContent = 'Continuar →';
+      btn.style.color = '#fff';
+      btn.style.cursor = 'pointer';
+      btn.style.background = '#1D9E75';
+      btn.style.borderColor = '#1D9E75';
+    }
+  }, 1000);
+}
+
+function closeInterstitial(){
+  document.getElementById('interstitial-bg').style.display = 'none';
+  // Reinicia o timer para o próximo interstitial (mais 3 min)
+  interstitialShown = false;
+  startInterstitialTimer();
+}
+
+// Inicia o timer de interstitial quando a página carrega
+startInterstitialTimer();
+
+/* ════════════════════════════════════════════════════════
+   NAVIGATION TABS
+════════════════════════════════════════════════════════ */
 const TABS = ['inicio','tracker','vagas','nego','perfil'];
+
 function setTab(tab){
   const mainPhone  = document.querySelector('.phone');
   const resultHero = mainPhone.querySelector('.result-hero');
   const resultBody = mainPhone.querySelector('.result-body');
   const topbar     = mainPhone.querySelector('.topbar');
 
-  // Esconde todas as telas overlay
   TABS.forEach(t => {
     const s = document.getElementById('screen-' + t);
     if(s) s.classList.remove('visible');
   });
 
   if(tab === 'inicio'){
-    // Mostra conteúdo principal de volta
     if(resultHero) resultHero.style.display = '';
     if(resultBody) resultBody.style.display = '';
     if(topbar)     topbar.style.display     = '';
   } else {
-    // Abre a tela overlay (position:fixed — cobre o .phone)
     const s = document.getElementById('screen-' + tab);
     if(s) s.classList.add('visible');
+
     if(tab === 'perfil') populatePerfil();
-    if(tab === 'vagas' && !vagasLoaded) loadVagas();
-    if(tab === 'nego')  initNego();
+
+    if(tab === 'vagas') {
+      if(!isLoggedIn()){
+        showVagasGate('login');
+      } else if(!vagasRewardDone){
+        showVagasGate('reward');
+        startVagasReward();
+      } else {
+        showVagasGate('content');
+        if(!vagasLoaded) loadVagas();
+      }
+    }
+
+    if(tab === 'nego'){
+      if(!isLoggedIn()){
+        document.getElementById('nego-gate-login').style.display  = 'flex';
+        document.getElementById('nego-content').style.display     = 'none';
+      } else {
+        document.getElementById('nego-gate-login').style.display  = 'none';
+        document.getElementById('nego-content').style.display     = 'flex';
+        updateCreditsBadge();
+        initNego();
+      }
+    }
   }
 
-  // Atualiza estado visual do navbar
   TABS.forEach(t => {
     const btn = document.getElementById('nav-' + t);
     if(!btn) return;
@@ -1071,268 +1394,268 @@ function setTab(tab){
 function goSignup(){ window.location.href = 'tela-4-share.html?signup=1'; }
 function goGoogle(){ window.location.href = 'tela-4-share.html?google=1'; }
 
-/* ════════════════════════════════════════
-   VAGAS — Adzuna API (grátis, 250 req/dia)
-   1. Cadastre em: developer.adzuna.com
-   2. Crie uma App → copie o App ID e App Key
-   3. Cole abaixo
-════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   VAGAS — Gates + Adzuna API
+════════════════════════════════════════════════════════ */
 const ADZUNA_APP_ID  = '7e179384';
 const ADZUNA_APP_KEY = '3d838dfc1cc9ec16c0d4feff067fdd33';
+let vagasLoaded    = false;
+let vagasRewardDone = false;
+let vagasRewardTimer = null;
+let allVagas = [];
 
-let vagasLoaded  = false;
-let allVagas     = [];
-let currentFilter = 'todas';
+function showVagasGate(gate){
+  document.getElementById('vagas-gate-login').style.display   = gate==='login'   ? 'flex' : 'none';
+  document.getElementById('vagas-gate-reward').style.display  = gate==='reward'  ? 'flex' : 'none';
+  document.getElementById('vagas-content').style.display      = gate==='content' ? 'flex' : 'none';
+}
 
-/* Mock realista — usado quando as keys não estão configuradas */
-const MOCK_VAGAS = [
-  { titulo:'Desenvolvedor(a) Pleno — Backend Node.js', empresa:'Nubank',      cidade:'São Paulo, SP',      modelo:'remoto',     salario:11500, link:'https://nubank.com.br/carreiras',  tempo:'2h',  fonte:'Adzuna', descricao:'Vaga 100% remota para dev Pleno com experiência em Node.js, TypeScript e AWS.' },
-  { titulo:'Software Engineer — Full Stack',            empresa:'iFood',       cidade:'São Paulo, SP',      modelo:'hibrido',    salario:10800, link:'https://careers.ifood.com',         tempo:'5h',  fonte:'Adzuna', descricao:'Trabalhe em produtos usados por 50M de pessoas. Stack: React, Python, Kafka.' },
-  { titulo:'Desenvolvedor Pleno — Python/Django',       empresa:'Creditas',    cidade:'São Paulo, SP',      modelo:'remoto',     salario:10200, link:'https://creditas.com/vagas',        tempo:'1d',  fonte:'Adzuna', descricao:'Oportunidade em fintech líder. Foco em APIs REST, PostgreSQL e microsserviços.' },
-  { titulo:'Backend Developer — Java/Spring',           empresa:'BTG Pactual', cidade:'São Paulo, SP',      modelo:'hibrido',    salario:12000, link:'https://btgpactual.com/careers',   tempo:'3d',  fonte:'Adzuna', descricao:'Desenvolvimento de soluções para mercado financeiro. Java 17, Spring Boot, Kafka.' },
-  { titulo:'Dev Pleno — React Native',                  empresa:'PicPay',      cidade:'São Paulo, SP',      modelo:'remoto',     salario:10500, link:'https://picpay.com/vagas',         tempo:'6h',  fonte:'Adzuna', descricao:'Plataforma de pagamentos com +30M usuários. React Native, Redux, CI/CD.' },
-  { titulo:'Full Stack Developer',                      empresa:'Hotmart',     cidade:'Belo Horizonte, MG', modelo:'remoto',     salario:9800,  link:'https://hotmart.com/carreiras',    tempo:'2d',  fonte:'Adzuna', descricao:'Empresa de educação digital global. Vue.js, Node.js, microservices.' },
-  { titulo:'Desenvolvedor Pleno — Vue.js/Laravel',      empresa:'TOTVS',       cidade:'São Paulo, SP',      modelo:'hibrido',    salario:9200,  link:'https://totvs.com/vagas',          tempo:'4d',  fonte:'Adzuna', descricao:'Maior empresa de software do Brasil. Stack PHP/Laravel + Vue.js + MySQL.' },
-  { titulo:'Software Engineer — GoLang',                empresa:'PagSeguro',   cidade:'São Paulo, SP',      modelo:'hibrido',    salario:11800, link:'https://jobs.pagbank.com',         tempo:'1d',  fonte:'Adzuna', descricao:'Plataforma de pagamentos. Go, gRPC, Kubernetes, alto volume de transações.' },
-  { titulo:'Engenheiro(a) de Dados — Pleno',            empresa:'Magazine Luiza','cidade':'São Paulo, SP',   modelo:'hibrido',    salario:10000, link:'https://carreiras.magazineluiza.com.br', tempo:'3h', fonte:'Adzuna', descricao:'Data engineering em escala. Python, Spark, BigQuery, Airflow, dbt.' },
-  { titulo:'Product Manager — Plataforma',              empresa:'Mercado Livre','cidade':'São Paulo, SP',    modelo:'hibrido',    salario:14500, link:'https://jobs.mercadolibre.com',   tempo:'12h', fonte:'Adzuna', descricao:'PM para squad de plataforma de pagamentos. Metodologia ágil, OKRs, A/B testing.' },
-];
+function startVagasReward(){
+  let secs = 30;
+  const bar   = document.getElementById('vagas-reward-bar');
+  const secsEl = document.getElementById('vagas-reward-secs');
+  const label  = document.getElementById('vagas-reward-label');
+  const badge  = document.getElementById('vagas-skip-badge');
+  const ctaDiv = document.getElementById('vagas-reward-cta');
+  if(vagasRewardTimer) clearInterval(vagasRewardTimer);
+  vagasRewardTimer = setInterval(() => {
+    secs--;
+    const pct = Math.round(((30-secs)/30)*100);
+    bar.style.width = pct + '%';
+    secsEl.textContent = secs;
+    badge.textContent  = secs + 's';
+    if(secs <= 15) label.textContent = 'Filtrando vagas para ' + (R?.cargo?.split('(')[0]?.trim() || 'você') + '...';
+    if(secs <= 5)  label.textContent = 'Vagas prontas!';
+    if(secs <= 0){
+      clearInterval(vagasRewardTimer);
+      badge.textContent  = 'Pular ›';
+      badge.style.color  = '#1D9E75';
+      badge.style.background = 'rgba(29,158,117,0.15)';
+      badge.style.cursor = 'pointer';
+      badge.onclick      = showVagasList;
+      ctaDiv.style.display = 'block';
+      showVagasList();
+    }
+  }, 1000);
+}
+
+function showVagasList(){
+  vagasRewardDone = true;
+  clearInterval(vagasRewardTimer);
+  showVagasGate('content');
+  if(!vagasLoaded) loadVagas();
+}
+
+/* Cargos similares para busca mais precisa */
+function getSearchTerms(){
+  const cargo = R?.cargo || 'Desenvolvedor';
+  const norm  = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  // Extrai palavras-chave relevantes do cargo
+  const kw = cargo.split('(')[0].trim()
+    .replace(/Desenvolvedor\(a\)/g,'Developer')
+    .replace(/Analista/g,'Analyst')
+    .replace(/Engenheiro\(a\)/g,'Engineer')
+    .split(' ').slice(0,3).join(' ');
+  return kw;
+}
 
 async function loadVagas(){
   vagasLoaded = true;
-  const RR       = JSON.parse(localStorage.getItem('qms_result') || '{}');
-  const cargo    = RR.cargo  || 'Desenvolvedor';
-  const cidade   = RR.cidade?.nome || 'São Paulo';
-  const mySal    = RR.my?.total || 0;
+  const cargo  = R?.cargo  || 'Desenvolvedor';
+  const cidade = R?.cidade?.nome || 'São Paulo';
+  const mySal  = R?.my?.total || 0;
   const cargoShort = cargo.split('(')[0].trim().split(' ').slice(0,3).join(' ');
 
-  document.getElementById('vagas-title').textContent = `Vagas para ${cargoShort}`;
+  document.getElementById('vagas-title').textContent =
+    `Vagas para ${cargoShort}`;
   document.getElementById('vagas-sub').textContent   =
-    `${cidade} e remoto · ${mySal > 0 ? 'acima de R$ ' + Math.round(mySal).toLocaleString('pt-BR') : 'compatíveis com seu perfil'}`;
+    `${R?.cidade?.nomad ? 'Nomad Digital' : cidade} e remoto${mySal > 0 ? ' · acima de R$ ' + Math.round(mySal).toLocaleString('pt-BR') : ''}`;
+
+  const MOCK = [
+    {id:'1',titulo:'Desenvolvedor(a) Pleno — Backend Node.js',empresa:'Nubank',cidade:'São Paulo, SP',modelo:'remoto',salario:11500,link:'https://nubank.com.br/carreiras',tempo:'2h',descricao:'Vaga 100% remota. Node.js, TypeScript e AWS.',fonte:'Adzuna'},
+    {id:'2',titulo:'Software Engineer — Full Stack',empresa:'iFood',cidade:'São Paulo, SP',modelo:'hibrido',salario:10800,link:'https://careers.ifood.com',tempo:'5h',descricao:'Trabalhe em produtos usados por 50M de pessoas. React, Python, Kafka.',fonte:'Adzuna'},
+    {id:'3',titulo:'Desenvolvedor Pleno — Python/Django',empresa:'Creditas',cidade:'São Paulo, SP',modelo:'remoto',salario:10200,link:'https://creditas.com/vagas',tempo:'1d',descricao:'APIs REST, PostgreSQL e microsserviços.',fonte:'Adzuna'},
+    {id:'4',titulo:'Backend Developer — Java/Spring',empresa:'BTG Pactual',cidade:'São Paulo, SP',modelo:'hibrido',salario:12000,link:'https://btgpactual.com/careers',tempo:'3d',descricao:'Java 17, Spring Boot, Kafka, mercado financeiro.',fonte:'Adzuna'},
+    {id:'5',titulo:'Dev Pleno — React Native',empresa:'PicPay',cidade:'São Paulo, SP',modelo:'remoto',salario:10500,link:'https://picpay.com/vagas',tempo:'6h',descricao:'+30M usuários. React Native, Redux, CI/CD.',fonte:'Adzuna'},
+    {id:'6',titulo:'Engenheiro(a) de Dados Pleno',empresa:'Mercado Livre',cidade:'São Paulo, SP',modelo:'hibrido',salario:13000,link:'https://jobs.mercadolibre.com',tempo:'12h',descricao:'Python, Spark, BigQuery, Airflow, dbt.',fonte:'Adzuna'},
+    {id:'7',titulo:'Product Manager — Plataforma',empresa:'Stone',cidade:'São Paulo, SP',modelo:'hibrido',salario:14500,link:'https://jobs.stone.com.br',tempo:'1d',descricao:'OKRs, A/B testing, roadmap de produto.',fonte:'Adzuna'},
+    {id:'8',titulo:'Analista de Dados Senior',empresa:'Gympass',cidade:'São Paulo, SP',modelo:'remoto',salario:9800,link:'https://jobs.gympass.com',tempo:'4h',descricao:'SQL, Python, dbt, Looker. Data-driven decisions.',fonte:'Adzuna'},
+  ];
 
   let vagas = [];
+  try {
+    const q   = encodeURIComponent(getSearchTerms());
+    const loc = encodeURIComponent(cidade.split(',')[0]);
+    const url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=15&what=${q}&where=${loc}&sort_by=date&content-type=application/json`;
+    const resp = await fetch(url);
+    if(resp.ok){
+      const data = await resp.json();
+      vagas = (data.results || []).map((j,i) => {
+        const tl = (j.title||'').toLowerCase();
+        const lo = (j.location?.display_name||'').toLowerCase();
+        const modelo = tl.includes('remot')||lo.includes('remot') ? 'remoto'
+                     : tl.includes('hbri')||tl.includes('hibrido') ? 'hibrido' : 'presencial';
+        return {
+          id: j.id || String(i),
+          titulo:   j.title,
+          empresa:  j.company?.display_name || 'Empresa',
+          cidade:   j.location?.display_name || cidade,
+          modelo,
+          salario:  j.salary_min ? Math.round((j.salary_min + (j.salary_max||j.salary_min))/2) : 0,
+          link:     j.redirect_url || j.adref || '#',  // link direto Adzuna
+          tempo:    timeDiffV(j.created),
+          descricao:(j.description||'').replace(/<[^>]+>/g,'').slice(0,110)+'…',
+          fonte:    'Adzuna',
+        };
+      });
+    }
+  } catch(e){ /* fallback abaixo */ }
 
-  if(ADZUNA_APP_ID && ADZUNA_APP_KEY){
-    try {
-      /* Adzuna Brasil endpoint — CORS aberto para leitura */
-      const q     = encodeURIComponent(cargoShort);
-      const loc   = encodeURIComponent(cidade.split(',')[0]);
-      const salMin = mySal > 0 ? `&salary_min=${Math.round(mySal * 0.9)}` : '';
-      const url   = `https://api.adzuna.com/v1/api/jobs/br/search/1`
-        + `?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}`
-        + `&results_per_page=15&what=${q}&where=${loc}`
-        + `&sort_by=date&content-type=application/json${salMin}`;
+  if(!vagas.length) vagas = MOCK;
 
-      const resp = await fetch(url);
-      if(resp.ok){
-        const data = await resp.json();
-        vagas = (data.results || []).map(j => {
-          const titleLow = (j.title || '').toLowerCase();
-          const locLow   = (j.location?.display_name || '').toLowerCase();
-          const modelo   = titleLow.includes('remot') || locLow.includes('remot') ? 'remoto'
-                         : titleLow.includes('híbri') || titleLow.includes('hibri') ? 'hibrido' : 'presencial';
-          return {
-            titulo:  j.title,
-            empresa: j.company?.display_name || 'Empresa',
-            cidade:  j.location?.display_name || cidade,
-            modelo,
-            salario: j.salary_min ? Math.round((j.salary_min + (j.salary_max || j.salary_min)) / 2) : 0,
-            link:    j.redirect_url || j.adref || '#',
-            tempo:   timeDiff(j.created),
-            fonte:   'Adzuna',
-            descricao: j.description ? j.description.replace(/<[^>]+>/g,'').slice(0,120) + '…' : '',
-          };
-        });
-      }
-    } catch(e){ console.warn('Adzuna API error:', e); }
-  }
-
-  // Fallback: mock
-  if(!vagas.length){
-    vagas = MOCK_VAGAS.map(v => ({ ...v }));
-  }
-
-  allVagas = vagas.map(v => ({ ...v, diffVsSal: mySal > 0 && v.salario > 0 ? v.salario - mySal : 0 }));
+  allVagas = vagas.map(v => ({
+    ...v,
+    diffVsSal: mySal > 0 && v.salario > 0 ? v.salario - mySal : 0,
+  }));
   renderVagas('todas');
 }
 
-function timeDiff(dateStr){
-  if(!dateStr) return 'Recente';
-  const d = new Date(dateStr), now = new Date();
-  const h = Math.round((now - d) / 36e5);
-  if(h < 1)  return 'Agora';
-  if(h < 24) return h + 'h';
-  const days = Math.round(h / 24);
-  if(days < 7)  return days + 'd';
-  return Math.round(days / 7) + 'sem';
+function timeDiffV(d){
+  if(!d) return 'Recente';
+  const h = Math.round((Date.now() - new Date(d).getTime()) / 3.6e6);
+  if(h < 1) return 'Agora'; if(h < 24) return h+'h';
+  const days = Math.round(h/24); if(days < 7) return days+'d';
+  return Math.round(days/7)+'sem';
 }
 
-function filterVagas(f){
-  currentFilter = f;
-  document.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+function filterVagas(f, ev){
+  if(ev){ document.querySelectorAll('.vf-btn').forEach(b=>b.classList.remove('active')); ev.target.classList.add('active'); }
   renderVagas(f);
 }
 
 function renderVagas(filter){
-  const list = document.getElementById('vagas-list');
-  const RR   = JSON.parse(localStorage.getItem('qms_result') || '{}');
-  const mySal = RR.my?.total || 0;
-
-  let filtered = filter === 'todas' ? allVagas
-    : allVagas.filter(v => v.modelo === filter);
-
+  const list  = document.getElementById('vagas-list');
+  const mySal = R?.my?.total || 0;
+  const filtered = filter==='todas' ? allVagas : allVagas.filter(v=>v.modelo===filter);
   if(!filtered.length){
-    list.innerHTML = `<div style="text-align:center;padding:40px 0;color:#aeaeb2;font-size:14px;">
-      <div style="font-size:28px;margin-bottom:8px;">🔎</div>
-      Nenhuma vaga encontrada para esse filtro
-    </div>`;
+    list.innerHTML = `<div style="text-align:center;padding:40px 0;color:#aeaeb2;font-size:14px;"><div style="font-size:28px;margin-bottom:8px;">🔎</div>Nenhuma vaga para esse filtro</div>`;
     return;
   }
+  const MODEL = {remoto:'Remoto 🏠', hibrido:'Híbrido 🔄', presencial:'Presencial 🏢'};
+  const MODEL_COLOR = {remoto:'background:#e8f8f2;color:#0F6E56', hibrido:'background:#E6F1FB;color:#185FA5', presencial:'background:#f2f2f7;color:#8e8e93'};
 
-  list.innerHTML = '';
-
-  // Header com contagem
-  const header = document.createElement('div');
-  header.style.cssText = 'font-size:12px;color:#8e8e93;margin-bottom:10px;';
-  header.textContent = `${filtered.length} vaga${filtered.length > 1?'s':''} encontrada${filtered.length > 1?'s':''}`;
-  list.appendChild(header);
-
+  list.innerHTML = `<div style="font-size:12px;color:#8e8e93;margin-bottom:10px;">${filtered.length} vaga${filtered.length>1?'s':''} encontrada${filtered.length>1?'s':''}</div>`;
   filtered.forEach(v => {
-    const above = v.salario > 0 && v.salario > mySal;
-    const diff  = v.salario > 0 && mySal > 0 ? v.salario - mySal : 0;
-    const modelLabel = { remoto:'Remoto 🏠', hibrido:'Híbrido 🔄', presencial:'Presencial 🏢' };
-
+    const diff = v.diffVsSal;
+    const diffTxt = diff !== 0
+      ? `<div style="font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;${diff>0?'background:#e8f8f2;color:#0F6E56':'background:#fcebeb;color:#E24B4A'}">${diff>0?'+':''}${fmt(Math.abs(diff))} vs você</div>`
+      : '';
     const card = document.createElement('div');
     card.className = 'vaga-card';
     card.innerHTML = `
       <div class="vaga-top">
         <div class="vaga-titulo">${v.titulo}</div>
-        <span class="vaga-modelo-tag ${v.modelo}">${modelLabel[v.modelo]||v.modelo}</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;margin-left:8px;flex-shrink:0;${MODEL_COLOR[v.modelo]||MODEL_COLOR.presencial}">${MODEL[v.modelo]||v.modelo}</span>
       </div>
       <div class="vaga-empresa">🏢 ${v.empresa} · ${v.cidade}</div>
-      ${v.descricao ? `<div style="font-size:12px;color:#8e8e93;line-height:1.4;margin-bottom:8px;">${v.descricao}</div>` : ''}
+      ${v.descricao?`<div style="font-size:12px;color:#8e8e93;line-height:1.4;margin-bottom:8px;">${v.descricao}</div>`:''}
       <div class="vaga-sal-row">
-        ${v.salario > 0
-          ? `<div class="vaga-sal">R$ ${Math.round(v.salario).toLocaleString('pt-BR')}</div>
-             ${diff !== 0 ? `<div class="vaga-diff ${diff < 0?'neg':''}">
-               ${diff >= 0 ? '+' : ''}R$ ${Math.abs(Math.round(diff)).toLocaleString('pt-BR')} vs você
-             </div>` : ''}` 
-          : `<div style="font-size:13px;color:#aeaeb2">Salário a combinar</div>`}
+        ${v.salario>0?`<div class="vaga-sal">${fmt(v.salario)}</div>${diffTxt}`:`<div style="font-size:13px;color:#aeaeb2">Salário a combinar</div>`}
       </div>
       <div class="vaga-meta">
-        <span class="vaga-meta-item">🕐 ${v.tempo||'Recente'}</span>
-        ${v.fonte ? `<span class="vaga-meta-item">📌 ${v.fonte}</span>` : ''}
+        <span class="vaga-meta-item">🕐 ${v.tempo}</span>
+        ${v.fonte?`<span class="vaga-meta-item">📌 ${v.fonte}</span>`:''}
       </div>
-      <a href="${v.link}" target="_blank" class="vaga-link-btn">Ver vaga →</a>`;
+      <a href="${v.link}" target="_blank" rel="noopener" class="vaga-link-btn">Ver vaga →</a>`;
     list.appendChild(card);
   });
 
-  // CTA ao final
   const cta = document.createElement('div');
   cta.style.cssText = 'text-align:center;padding:20px 0 8px;';
   cta.innerHTML = `<div style="font-size:13px;color:#8e8e93;margin-bottom:10px;">Ative alertas para receber novas vagas</div>
-    <button onclick="goSignup()" style="padding:11px 24px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Criar conta e ativar alertas →</button>`;
+    <button onclick="goSignup()" style="padding:11px 24px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔔 Ativar alertas →</button>`;
   list.appendChild(cta);
 }
 
-/* ════════════════════════════════════════
-   NEGOCIAÇÃO — Claude AI
-   Usa a mesma Anthropic API key do projeto
-════════════════════════════════════════ */
-let negoLevel     = 'facil';
+/* ════════════════════════════════════════════════════════
+   NEGOCIAÇÃO — Sistema de Créditos + Claude AI
+════════════════════════════════════════════════════════ */
 let negoMessages  = [];
 let negoStarted   = false;
 let negoTyping    = false;
 
 const NIVEL_CONFIG = {
-  facil:   { label:'😊 RH receptivo', desc:'Gestor aberto, quer reter talentos',  color:'#1D9E75' },
-  medio:   { label:'😐 RH neutro',    desc:'Sem posição clara, precisa convencer', color:'#FAC775' },
-  dificil: { label:'😤 RH resistente',desc:'Argumenta contra. Modo premium',       color:'#E24B4A' },
+  facil:   { label:'😊 RH receptivo',  desc:'Gestor aberto, quer reter talentos',   color:'#1D9E75' },
+  medio:   { label:'😐 RH neutro',     desc:'Sem posição clara, precisa convencer',  color:'#FAC775' },
+  dificil: { label:'😤 RH resistente', desc:'Argumenta contra. Consome 5 créditos.', color:'#E24B4A' },
 };
 
 function initNego(){
   if(negoStarted) return;
-  const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
-  const cargo  = RR.cargo?.split('(')[0]?.trim() || 'seu cargo';
-  const pct    = Math.abs(RR.diff || 18);
-  const diffM  = RR.diffMes || 1800;
-  const cidade = RR.cidade?.nome || 'SP';
-  const mySal  = RR.my?.total || 0;
-  const mktSal = RR.mkt?.total || 0;
-
+  const cfg = NIVEL_CONFIG[negoLevel];
+  const pct    = Math.abs(R.diff || 18);
+  const diffM  = R.diffMes || 1800;
+  const cidade = R.cidade?.nome || 'SP';
   document.getElementById('nego-context').innerHTML =
-    `<strong style="color:#1D9E75">${cargo}</strong> em ${cidade} · seu salário está <strong style="color:#E24B4A">${pct}% abaixo</strong> do mercado` +
-    (diffM > 0 ? ` · diferença de <strong>R$ ${Math.round(diffM).toLocaleString('pt-BR')}/mês</strong>` : '');
-
-  // Esconde tela de início
+    `<strong style="color:#1D9E75">${R.cargo?.split('(')[0]?.trim()}</strong> em ${cidade} · seu salário está <strong style="color:#E24B4A">${pct}% abaixo</strong> do mercado` +
+    (diffM > 0 ? ` · diferença de <strong>${fmt(diffM)}/mês</strong>` : '');
   const startEl = document.getElementById('nego-start');
-  if(startEl) startEl.style.display = 'none';
+  if(startEl) startEl.style.display = 'flex';
 }
 
 function setLevel(level){
-  if(level === 'dificil'){ unlockLevel(); return; }
   negoLevel = level;
   ['facil','medio','dificil'].forEach(l => {
     const btn = document.getElementById('nl-' + l);
     if(btn) btn.classList.toggle('active', l === level);
   });
-  // Reinicia chat se já tinha começado
   if(negoStarted){ resetNego(); }
 }
 
-function unlockLevel(){
-  // Premium feature — pede cadastro
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:flex-end;z-index:100;';
-  modal.innerHTML = `<div style="width:100%;max-width:390px;margin:0 auto;background:#1a1a1a;border-radius:20px 20px 0 0;padding:24px 24px 36px;display:flex;flex-direction:column;gap:14px;">
-    <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;align-self:center;margin-bottom:4px;"></div>
-    <div style="font-size:20px;font-weight:800;color:#fff;">🔒 Modo Difícil</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.5;">O RH resistente usa contra-argumentos reais. Desbloqueie criando uma conta gratuita.</div>
-    <button onclick="goSignup()" style="padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Criar conta grátis →</button>
-    <button onclick="this.closest('[style]').remove()" style="background:none;border:none;font-size:14px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">Agora não</button>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
 function resetNego(){
-  negoMessages  = [];
-  negoStarted   = false;
-  document.getElementById('nego-chat').innerHTML = '';
+  negoMessages = []; negoStarted = false;
+  document.getElementById('nego-chat').innerHTML = '<div style="text-align:center;padding:32px 0;color:rgba(255,255,255,0.3);font-size:14px;" id="nego-start"><div style="font-size:32px;margin-bottom:8px;">🎯</div>Escolha o nível e clique em Iniciar</div>';
   document.getElementById('quick-replies-wrap').style.display = 'none';
   document.getElementById('nego-send-btn').textContent = 'Iniciar';
   document.getElementById('nego-input').value = '';
 }
 
 async function startNego(){
+  // Verifica créditos
+  const cost = LEVEL_COST[negoLevel] || 1;
+  const current = getCredits();
+  if(current < cost){
+    openCreditsModal();
+    return;
+  }
+
   if(!negoStarted){
+    // Consome os créditos
+    setCredits(current - cost);
     negoStarted = true;
     document.getElementById('nego-send-btn').textContent = 'Enviar';
-    const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
-    const cargo  = RR.cargo?.split('(')[0]?.trim() || 'este cargo';
-    const pct    = Math.abs(RR.diff || 18);
-    const diffM  = Math.abs(RR.diffMes || 1800);
-    const mySal  = Math.round(RR.my?.total || 0);
-    const mktSal = Math.round(RR.mkt?.total || 0);
-    const cidade = RR.cidade?.nome || 'São Paulo';
+    const pct    = Math.abs(R.diff || 18);
+    const diffM  = Math.abs(R.diffMes || 1800);
+    const mySal  = Math.round(R.my?.total || 0);
+    const mktSal = Math.round(R.mkt?.total || 0);
+    const cidade = R.cidade?.nome || 'São Paulo';
+    const cfg    = NIVEL_CONFIG[negoLevel];
 
-    const cfg = NIVEL_CONFIG[negoLevel];
     negoMessages = [{
       role:'user',
       content:`Você é um(a) gestor(a) de RH de uma empresa brasileira e eu sou um(a) colaborador(a) pedindo aumento.
-Meu cargo: ${cargo} em ${cidade}.
-Meu salário atual: R$ ${mySal.toLocaleString('pt-BR')}/mês.
-Média do mercado: R$ ${mktSal.toLocaleString('pt-BR')}/mês.
-Meu salário está ${pct}% abaixo do mercado — diferença de R$ ${diffM.toLocaleString('pt-BR')}/mês.
+Meu cargo: ${R.cargo?.split('(')[0]?.trim()} em ${cidade}.
+Meu salário atual: ${fmt(mySal)}/mês.
+Média do mercado: ${fmt(mktSal)}/mês.
+Meu salário está ${pct}% abaixo do mercado — diferença de ${fmt(diffM)}/mês.
 
 Perfil do RH (SIGA EXATAMENTE): ${cfg.desc}.
-Tom: ${negoLevel === 'facil' ? 'receptivo e empático, mas dentro do orçamento da empresa' : negoLevel === 'medio' ? 'neutro, precisa ser convencido com dados concretos' : 'resistente, usa contra-argumentos mas é realista'}.
+Tom: ${negoLevel==='facil'?'receptivo e empático':'negoLevel==='medio'?'neutro, precisa ser convencido com dados':'resistente, usa contra-argumentos reais'}.
 
 Regras:
-- Responda APENAS como o RH — sem narração, sem explicações fora do personagem
+- Responda APENAS como o RH — sem narração
 - Respostas curtas (2-3 frases)
-- Use dados salariais reais da conversa
-- Se o colaborador apresentar bons argumentos, avance na negociação
+- Use os dados salariais reais da conversa
 
 Comece a reunião: cumprimente e abra para o colaborador falar.`
     }];
@@ -1343,8 +1666,8 @@ Comece a reunião: cumprimente e abra para o colaborador falar.`
     negoMessages.push({ role:'assistant', content: reply });
     appendMsg('rh', reply);
     showQuickReplies([
-      'Pesquisei dados do mercado e tenho os números aqui',
-      'Meu salário está ' + pct + '% abaixo da média',
+      'Pesquisei dados do mercado e tenho os números',
+      `Meu salário está ${pct}% abaixo da média`,
       'Trouxe uma proposta concreta',
     ]);
   } else {
@@ -1353,113 +1676,79 @@ Comece a reunião: cumprimente e abra para o colaborador falar.`
 }
 
 async function sendNego(){
-  const inp = document.getElementById('nego-input');
+  const inp  = document.getElementById('nego-input');
   const text = inp.value.trim();
   if(!text || negoTyping) return;
   inp.value = '';
   document.getElementById('quick-replies-wrap').style.display = 'none';
-
   negoMessages.push({ role:'user', content: text });
   appendMsg('user', text);
   appendMsg('rh', '...', true);
   negoTyping = true;
-
-  const history = negoMessages.slice(0,-1).concat([{ role:'user', content: text }]);
-  const reply = await callClaude(history);
+  const history = [...negoMessages];
+  const reply   = await callClaude(history);
   removeTyping();
   negoTyping = false;
   negoMessages.push({ role:'assistant', content: reply });
   appendMsg('rh', reply);
-
-  // Quick replies dinâmicas baseadas na resposta
-  if(reply.toLowerCase().includes('quanto') || reply.toLowerCase().includes('proposta')){
-    const RR = JSON.parse(localStorage.getItem('qms_result') || '{}');
-    const ask = Math.round((RR.mkt?.total || (RR.my?.total || 6000) * 1.2));
-    showQuickReplies([
-      `Estou pedindo R$ ${ask.toLocaleString('pt-BR')} por mês`,
-      'Posso mostrar as vagas concorrentes pagando mais',
-      'Estou aberto a discutir outros benefícios também',
-    ]);
-  } else if(reply.toLowerCase().includes('considerar') || reply.toLowerCase().includes('levar')){
-    showQuickReplies([
-      'Quando posso ter uma resposta?',
-      'Posso ajudar a construir o caso para a diretoria',
-      'Obrigado, aguardo o retorno',
-    ]);
+  if(reply.toLowerCase().includes('quanto')||reply.toLowerCase().includes('proposta')){
+    const ask = Math.round((R.mkt?.total||(R.my?.total||6000)*1.2));
+    showQuickReplies([`Estou pedindo ${fmt(ask)} por mês`,'Posso mostrar vagas concorrentes pagando mais','Estou aberto a outros benefícios também']);
   } else {
-    showQuickReplies([
-      'Entendo, mas os dados do mercado são claros',
-      'Posso apresentar mais evidências',
-      'O que seria necessário para aprovar?',
-    ]);
+    showQuickReplies(['Entendo, mas os dados do mercado são claros','Posso apresentar mais evidências','O que seria necessário para aprovar?']);
   }
 }
 
 async function callClaude(messages){
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:300,
-        messages: messages.map((m,i) => i === 0
-          ? { role:'user',      content: m.content }
-          : { role: m.role === 'user' ? 'user' : 'assistant', content: m.content }
-        )
-      })
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:300, messages })
     });
     const data = await resp.json();
     return data.content?.[0]?.text || 'Entendo. Continue.';
   } catch(e){
-    // Fallback com respostas fixas por nível
-    const fallbacks = {
-      facil:   ['Obrigado por trazer isso. Me conta mais sobre sua pesquisa de mercado.','Entendo sua preocupação. Quais dados você encontrou?','Faz sentido. Vamos ver o que podemos fazer.'],
-      medio:   ['Interessante. Você tem dados concretos para embasar isso?','Precisamos de mais informações. O que você está propondo exatamente?','Vou precisar analisar melhor. Qual seria sua proposta?'],
-      dificil: ['O momento não é o mais favorável para reajustes.','Sua entrega tem sido boa, mas precisamos equilibrar com o orçamento.','Que outros benefícios você estaria considerando além do salário?']
+    const fb = {
+      facil:  ['Obrigado por trazer isso. Me conta mais sobre sua pesquisa.','Faz sentido. Vamos ver o que podemos fazer.'],
+      medio:  ['Você tem dados concretos para embasar isso?','Qual seria sua proposta exata?'],
+      dificil:['O momento não é o mais favorável agora.','Precisamos equilibrar com o orçamento da empresa.'],
     };
-    const opts = fallbacks[negoLevel] || fallbacks.facil;
-    return opts[Math.floor(Math.random() * opts.length)];
+    const opts = fb[negoLevel] || fb.facil;
+    return opts[Math.floor(Math.random()*opts.length)];
   }
 }
 
 function appendMsg(from, text, typing=false){
-  const chat   = document.getElementById('nego-chat');
-  const div    = document.createElement('div');
+  const chat = document.getElementById('nego-chat');
+  const startEl = document.getElementById('nego-start');
+  if(startEl) startEl.style.display = 'none';
+  const div = document.createElement('div');
   div.className = 'chat-msg ' + from;
   if(typing){
     div.id = 'typing-bubble';
     div.innerHTML = `<div class="chat-avatar ${from}-av">${from==='rh'?'👔':'🧑'}</div>
       <div class="chat-bubble"><div class="chat-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
   } else {
-    const label = from === 'rh' ? 'RH' : 'Você';
+    const label = from==='rh'?'RH':'Você';
     div.innerHTML = `<div class="chat-avatar ${from}-av">${from==='rh'?'👔':'🧑'}</div>
       <div><div class="chat-name">${label}</div><div class="chat-bubble">${text}</div></div>`;
   }
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
-
-function removeTyping(){
-  const t = document.getElementById('typing-bubble');
-  if(t) t.remove();
-}
-
+function removeTyping(){ const t=document.getElementById('typing-bubble'); if(t)t.remove(); }
 function showQuickReplies(replies){
-  const wrap = document.getElementById('quick-replies-wrap');
-  const cont = document.getElementById('quick-replies');
-  cont.innerHTML = '';
-  replies.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'qr-chip';
-    btn.textContent = r;
-    btn.onclick = () => {
-      document.getElementById('nego-input').value = r;
-      sendNego();
-    };
+  const wrap=document.getElementById('quick-replies-wrap');
+  const cont=document.getElementById('quick-replies');
+  cont.innerHTML='';
+  replies.forEach(r=>{
+    const btn=document.createElement('button');
+    btn.className='qr-chip'; btn.textContent=r;
+    btn.onclick=()=>{ document.getElementById('nego-input').value=r; sendNego(); };
     cont.appendChild(btn);
   });
-  wrap.style.display = 'block';
+  wrap.style.display='block';
 }
 
 /* ── POPULA PERFIL ── */
