@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "Qual Meu Salário?",
+    "slug": "qualmeusalario",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "qualmeusalario",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0d0d0d"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.qualmeusalario.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "GADApplicationIdentifier": "ca-app-pub-9316035916536420~1961894132",
+        "NSUserTrackingUsageDescription": "Usamos dados para personalizar anúncios relevantes sobre vagas e cursos na sua área.",
+        "NSCameraUsageDescription": "Para tirar foto do seu perfil.",
+        "NSPhotoLibraryUsageDescription": "Para salvar seu card de resultado na galeria."
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#1D9E75"
+      },
+      "package": "com.qualmeusalario.app",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        { "backgroundColor": "#0d0d0d", "image": "./assets/images/splash.png" }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#1D9E75",
+          "sounds": []
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-9316035916536420~1961894132",
+          "iosAppId":     "ca-app-pub-9316035916536420~1961894132",
+          "userTrackingUsageDescription": "Usamos dados para personalizar anúncios."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": { "projectId": "SEU_EAS_PROJECT_ID" },
+      "supabaseUrl":     "https://mnqqmxizchcxwptnhsfm.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXFteGl6Y2hjeHdwdG5oc2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTEyMTgsImV4cCI6MjA4OTEyNzIxOH0.G8hnal04gsQVhJd9vorHHKYsnYFtlz3ALtSks1By-rQ",
+      "adzunaAppId":     "7e179384",
+      "adzunaAppKey":    "3d838dfc1cc9ec16c0d4feff067fdd33",
+      "admobRewardedAndroid": "ca-app-pub-9316035916536420/4923099397",
+      "admobRewardedIos":     "ca-app-pub-9316035916536420/4923099397"
+    }
+  }
+}
