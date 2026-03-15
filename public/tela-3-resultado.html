@@ -108,9 +108,16 @@
 
   /* ── TELAS BLOQUEADAS ── */
   .locked-screen {
-    display:none; flex-direction:column; position:relative; overflow:hidden;
+    display:none;
+    position:fixed;
+    top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:390px;
+    height:calc(100% - 72px);
+    overflow-y:auto;
     background:#fff;
-    min-height:calc(100vh - 72px);
+    z-index:40;
+    flex-direction:column;
+    -webkit-overflow-scrolling:touch;
   }
   .locked-screen.visible { display:flex; }
 
@@ -295,7 +302,18 @@
     margin-bottom:6px;
   }
   .qr-chip:active { background:rgba(29,158,117,0.2); }
-  .perfil-screen { display:none; flex-direction:column; min-height:calc(100vh - 72px); background:#0d0d0d; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .perfil-screen {
+    display:none;
+    position:fixed;
+    top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:390px;
+    height:calc(100% - 72px);
+    overflow-y:auto;
+    background:#0d0d0d;
+    z-index:40;
+    flex-direction:column;
+    -webkit-overflow-scrolling:touch;
+  }
   .perfil-screen.visible { display:flex; }
 
   .perfil-header { padding:28px 22px 20px; border-bottom:1px solid rgba(255,255,255,0.07); }
@@ -676,7 +694,7 @@
 </div>
 
 <!-- ── TELA NEGOCIAÇÃO ── -->
-<div class="locked-screen" id="screen-nego" style="background:#0d0d0d;display:none;flex-direction:column;">
+<div class="locked-screen" id="screen-nego" style="background:#0d0d0d;">
 
   <!-- Header do simulador -->
   <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
@@ -1020,19 +1038,19 @@ function setTab(tab){
   const resultBody = mainPhone.querySelector('.result-body');
   const topbar     = mainPhone.querySelector('.topbar');
 
+  // Esconde todas as telas overlay
   TABS.forEach(t => {
     const s = document.getElementById('screen-' + t);
     if(s) s.classList.remove('visible');
   });
 
   if(tab === 'inicio'){
+    // Mostra conteúdo principal de volta
     if(resultHero) resultHero.style.display = '';
     if(resultBody) resultBody.style.display = '';
     if(topbar)     topbar.style.display     = '';
   } else {
-    if(resultHero) resultHero.style.display = 'none';
-    if(resultBody) resultBody.style.display = 'none';
-    if(topbar)     topbar.style.display     = 'none';
+    // Abre a tela overlay (position:fixed — cobre o .phone)
     const s = document.getElementById('screen-' + tab);
     if(s) s.classList.add('visible');
     if(tab === 'perfil') populatePerfil();
@@ -1040,6 +1058,7 @@ function setTab(tab){
     if(tab === 'nego')  initNego();
   }
 
+  // Atualiza estado visual do navbar
   TABS.forEach(t => {
     const btn = document.getElementById('nav-' + t);
     if(!btn) return;
