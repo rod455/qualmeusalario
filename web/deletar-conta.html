@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excluir Conta — Quanto Ganha!</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0B1838;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{background:#0F2048;border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:48px;max-width:560px;width:100%}
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+  .logo-icon{width:36px;height:36px;background:#1D9E75;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+  h1{font-size:26px;font-weight:900;margin-bottom:8px}
+  .subtitle{font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:32px}
+  .warning{background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.25);border-radius:12px;padding:16px 20px;margin-bottom:28px}
+  .warning p{font-size:14px;color:rgba(255,255,255,0.7);margin:0}
+  .warning strong{color:#E24B4A}
+  h2{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:12px}
+  .steps{list-style:none;margin-bottom:28px}
+  .steps li{display:flex;gap:14px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px;color:rgba(255,255,255,0.65)}
+  .steps li:last-child{border-bottom:none}
+  .step-num{width:24px;height:24px;border-radius:50%;background:#F5A820;color:#0B1838;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .data-list{margin-bottom:28px}
+  .data-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:14px;color:rgba(255,255,255,0.65);border-bottom:1px solid rgba(255,255,255,0.06)}
+  .data-item:last-child{border-bottom:none}
+  .data-icon{font-size:16px;margin-top:1px}
+  .btn{display:block;width:100%;padding:16px;background:#E24B4A;color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:12px;transition:opacity 0.2s}
+  .btn:hover{opacity:0.85}
+  .btn-sec{display:block;width:100%;padding:14px;background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.12);border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s}
+  .btn-sec:hover{border-color:rgba(255,255,255,0.3);color:#fff}
+  footer{margin-top:24px;font-size:12px;color:rgba(255,255,255,0.25);text-align:center}
+  footer a{color:rgba(255,255,255,0.35);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-row">
+    <div class="logo-icon">$</div>
+    <strong style="font-size:16px">Quanto Ganha!</strong>
+  </div>
+
+  <h1>Excluir minha conta</h1>
+  <p class="subtitle">Solicitação de exclusão de conta e dados pessoais</p>
+
+  <div class="warning">
+    <p><strong>⚠️ Atenção:</strong> a exclusão é permanente. Todos os seus dados, histórico de análises e configurações serão removidos e não poderão ser recuperados.</p>
+  </div>
+
+  <h2>O que será excluído</h2>
+  <div class="data-list">
+    <div class="data-item"><span class="data-icon">👤</span><span>Dados da conta (nome, e-mail, foto de perfil)</span></div>
+    <div class="data-item"><span class="data-icon">📊</span><span>Histórico de análises salariais</span></div>
+    <div class="data-item"><span class="data-icon">🔔</span><span>Preferências e configurações de notificação</span></div>
+    <div class="data-item"><span class="data-icon">⏱️</span><span>Prazo de exclusão: até 30 dias após a solicitação</span></div>
+  </div>
+
+  <h2>Como solicitar a exclusão</h2>
+  <ol class="steps">
+    <li><span class="step-num">1</span><span>Clique no botão abaixo para enviar um e-mail de solicitação</span></li>
+    <li><span class="step-num">2</span><span>Informe o e-mail cadastrado na sua conta no corpo do e-mail</span></li>
+    <li><span class="step-num">3</span><span>Você receberá uma confirmação em até 5 dias úteis</span></li>
+    <li><span class="step-num">4</span><span>A exclusão completa será concluída em até 30 dias</span></li>
+  </ol>
+
+  <a class="btn" href="mailto:appfactory.rlm@gmail.com?subject=Solicita%C3%A7%C3%A3o%20de%20exclus%C3%A3o%20de%20conta%20-%20Quanto%20Ganha!&body=Ol%C3%A1%2C%0A%0ASolicito%20a%20exclus%C3%A3o%20da%20minha%20conta%20e%20todos%20os%20meus%20dados%20do%20aplicativo%20Quanto%20Ganha!%0A%0AE-mail%20da%20conta%3A%20%5Bseu%20e-mail%20aqui%5D%0A%0AAtenciosamente">
+    📧 Solicitar exclusão por e-mail
+  </a>
+  <a class="btn-sec" href="/privacidade.html">Ver política de privacidade</a>
+
+  <footer>
+    <a href="/">Quanto Ganha!</a> · <a href="/privacidade.html">Privacidade</a> · <a href="/termos.html">Termos</a>
+  </footer>
+</div>
+</body>
+</html>
