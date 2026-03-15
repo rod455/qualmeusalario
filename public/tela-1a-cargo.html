@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Quanto Ganha!</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:#fff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+
+  .phone {
+    max-width:390px; min-height:100vh; margin:0 auto;
+    background:#fff; display:flex; flex-direction:column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    padding:16px 22px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .logo-row { display:flex; align-items:center; gap:9px; }
+  .logo-icon { width:30px; height:30px; background:#1D9E75; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#fff; }
+  .logo-name { font-size:14px; font-weight:700; color:#1a1a1a; }
+  .step-indicator { font-size:12px; font-weight:600; color:#aeaeb2; }
+
+  /* PROGRESS */
+  .progress-bar { height:3px; background:#f2f2f7; flex-shrink:0; }
+  .progress-fill { height:100%; background:#1D9E75; width:25%; border-radius:0 2px 2px 0; transition:width 0.4s ease; }
+
+  /* CONTENT */
+  .content { flex:1; padding:28px 24px 16px; display:flex; flex-direction:column; }
+
+  .step-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:#e8f8f2; color:#0F6E56;
+    font-size:12px; font-weight:700; padding:5px 12px;
+    border-radius:20px; margin-bottom:16px;
+    text-transform:uppercase; letter-spacing:0.5px;
+  }
+  h1 { font-size:26px; font-weight:800; color:#1a1a1a; line-height:1.25; letter-spacing:-0.5px; margin-bottom:6px; }
+  .subtitle { font-size:15px; color:#8e8e93; line-height:1.4; margin-bottom:28px; }
+
+  /* AUTOCOMPLETE */
+  .ac-wrap { position:relative; margin-bottom:8px; }
+  .ac-wrap input {
+    width:100%; padding:14px 40px 14px 16px;
+    font-size:16px; border:1.5px solid #e5e5ea;
+    border-radius:14px; background:#fff;
+    color:#1a1a1a; font-family:inherit;
+    transition:border-color 0.15s, box-shadow 0.15s;
+  }
+  .ac-wrap input:focus { outline:none; border-color:#1D9E75; box-shadow:0 0 0 3px rgba(29,158,117,0.1); }
+  .ac-clear { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:17px; color:#c7c7cc; cursor:pointer; display:none; }
+  .ac-dropdown {
+    position:absolute; top:calc(100%+4px); left:0; right:0;
+    background:#fff; border:1.5px solid #e5e5ea;
+    border-radius:14px; overflow:hidden;
+    max-height:260px; overflow-y:auto; z-index:100;
+    display:none; box-shadow:0 8px 32px rgba(0,0,0,0.1);
+  }
+  .ac-dropdown.open { display:block; }
+  .ac-section {
+    font-size:10px; font-weight:700; color:#aeaeb2;
+    text-transform:uppercase; letter-spacing:0.7px;
+    padding:9px 16px 4px; background:#f9f9f9;
+    border-bottom:0.5px solid #f2f2f7;
+    position:sticky; top:0;
+  }
+  .ac-item {
+    padding:12px 16px; font-size:15px; color:#1a1a1a;
+    cursor:pointer; border-bottom:0.5px solid #f7f7f7;
+    transition:background 0.1s;
+  }
+  .ac-item:last-child { border-bottom:none; }
+  .ac-item:active { background:#f9f9f9; }
+  .ac-no { padding:14px 16px; font-size:14px; color:#aeaeb2; text-align:center; }
+  .ac-use {
+    padding:12px 16px; font-size:14px; color:#1D9E75;
+    font-weight:600; cursor:pointer; border:none;
+    background:#f9fff9; font-family:inherit;
+    width:100%; text-align:left; border-top:0.5px solid #e5e5ea;
+  }
+
+  /* BADGE SELECIONADO */
+  .badge-sel {
+    display:inline-flex; align-items:center; gap:8px;
+    background:#e8f8f2; color:#0F6E56; font-size:14px;
+    font-weight:600; padding:8px 14px; border-radius:12px;
+    margin-top:8px; max-width:100%; overflow:hidden;
+  }
+  .badge-sel span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .badge-sel button { background:none; border:none; color:#0F6E56; cursor:pointer; font-size:16px; line-height:1; padding:0; flex-shrink:0; }
+
+  /* SUGESTÕES RÁPIDAS */
+  .quick-title { font-size:12px; font-weight:600; color:#aeaeb2; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+  .quick-chips { display:flex; flex-wrap:wrap; gap:7px; }
+  .quick-chip {
+    padding:7px 14px; font-size:13px; font-weight:500;
+    border:1.5px solid #e5e5ea; border-radius:20px;
+    cursor:pointer; background:#fff; color:#3a3a3c;
+    font-family:inherit; transition:all 0.15s;
+  }
+  .quick-chip:active { background:#e8f8f2; border-color:#5DCAA5; color:#0F6E56; }
+
+  /* CTA */
+  .cta-wrap { margin-top:auto; padding-top:20px; }
+  .cta-btn {
+    width:100%; padding:16px; background:#1D9E75; color:#fff;
+    border:none; border-radius:14px; font-size:17px;
+    font-weight:800; cursor:pointer; font-family:inherit;
+    letter-spacing:-0.3px; transition:opacity 0.15s, transform 0.1s;
+  }
+  .cta-btn:disabled { opacity:0.35; cursor:not-allowed; }
+  .cta-btn:not(:disabled):active { opacity:0.88; transform:scale(0.99); }
+
+  .step-hint {
+    text-align:center; font-size:13px; color:#aeaeb2;
+    margin-top:12px;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="topbar">
+    <div class="logo-row">
+      <div class="logo-icon">$</div>
+      <div class="logo-name">Quanto Ganha!</div>
+    </div>
+    <div class="step-indicator">1 de 3</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+
+  <div class="content">
+    <div class="step-badge">💼 Cargo</div>
+    <h1>Qual é o<br>seu cargo?</h1>
+    <p class="subtitle">Vamos buscar os dados de mercado para a sua profissão.</p>
+
+    <div class="ac-wrap">
+      <input type="text" id="cargo-input" placeholder="Ex: Desenvolvedor Pleno, Analista..."
+        autocomplete="off" oninput="onCargoInput()" onfocus="onCargoFocus()" onblur="onCargoBlur()">
+      <button class="ac-clear" id="cargo-clear" onclick="clearCargo()">✕</button>
+      <div class="ac-dropdown" id="cargo-dd"></div>
+    </div>
+    <div id="cargo-badge"></div>
+
+    <div id="quick-section" style="margin-top:24px;">
+      <div class="quick-title">Mais buscados</div>
+      <div class="quick-chips">
+        <button class="quick-chip" onclick="pickCargo('Desenvolvedor(a) Backend Pleno','Tecnologia')">Dev Backend Pleno</button>
+        <button class="quick-chip" onclick="pickCargo('Desenvolvedor(a) Frontend Pleno','Tecnologia')">Dev Frontend Pleno</button>
+        <button class="quick-chip" onclick="pickCargo('Product Manager (PM)','Tecnologia')">Product Manager</button>
+        <button class="quick-chip" onclick="pickCargo('Analista de Marketing Digital','Marketing')">Analista de Mkt</button>
+        <button class="quick-chip" onclick="pickCargo('Analista de Dados','Tecnologia')">Analista de Dados</button>
+        <button class="quick-chip" onclick="pickCargo('Designer UX/UI Pleno','Design & UX')">Designer UX/UI</button>
+        <button class="quick-chip" onclick="pickCargo('Analista Financeiro Pleno','Finanças')">Analista Financeiro</button>
+        <button class="quick-chip" onclick="pickCargo('Executivo(a) de Contas (AE)','Vendas & Comercial')">Account Executive</button>
+        <button class="quick-chip" onclick="pickCargo('Gerente de Projetos (PMO)','Operações & CS')">Gerente de Projetos</button>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="cta-btn" id="cta-btn" disabled onclick="goNext()">
+        Continuar →
+      </button>
+      <div class="step-hint">Passo 1 de 3 · leva menos de 1 minuto</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CAREERS = [
+  { area:"Tecnologia", items:["Desenvolvedor(a) Frontend Junior","Desenvolvedor(a) Frontend Pleno","Desenvolvedor(a) Frontend Senior","Desenvolvedor(a) Backend Junior","Desenvolvedor(a) Backend Pleno","Desenvolvedor(a) Backend Senior","Desenvolvedor(a) Full Stack Pleno","Desenvolvedor(a) Full Stack Senior","Desenvolvedor(a) Mobile","Engenheiro(a) de Software","Tech Lead","Arquiteto(a) de Software","DevOps Engineer","SRE","Engenheiro(a) de Dados Pleno","Engenheiro(a) de Dados Senior","Analista de Dados","Cientista de Dados","Analista de BI","QA Engineer","Scrum Master","Agile Coach","Product Manager (PM)","Product Owner (PO)","CTO","Head de Tecnologia"] },
+  { area:"Design & UX", items:["Designer UX/UI Junior","Designer UX/UI Pleno","Designer UX/UI Senior","UX Researcher","Motion Designer","Designer Gráfico","Head de Design","Brand Designer","Web Designer"] },
+  { area:"Marketing", items:["Analista de Marketing","Analista de Marketing Digital","Growth Hacker","Especialista em SEO","Especialista em Mídia Paga","Social Media Manager","Content Manager","Copywriter","Gerente de Marketing","CMO","Head de Conteúdo"] },
+  { area:"Vendas & Comercial", items:["SDR","BDR","Executivo(a) de Contas (AE)","Key Account Manager","Gerente de Vendas","Diretor(a) Comercial","CSO","Closer","Representante Comercial","Inside Sales","Hunter","Farmer"] },
+  { area:"Operações & CS", items:["Analista de Customer Success","Customer Success Manager","Analista de Suporte Técnico","Analista de Operações","Gerente de Operações","COO","Analista de Logística","Coordenador(a) de Projetos","Gerente de Projetos (PMO)"] },
+  { area:"Finanças", items:["Analista Financeiro Junior","Analista Financeiro Pleno","Analista Financeiro Senior","Controller","CFO","Contador(a)","Analista Contábil","Analista de FP&A","Tesoureiro(a)","Analista de Investimentos"] },
+  { area:"RH & People", items:["Analista de RH","Analista de R&S","HRBP","People Analytics","Gerente de RH","CHRO","Especialista em T&D"] },
+  { area:"Jurídico", items:["Advogado(a) Trabalhista","Advogado(a) Contratual","Advogado(a) Tributário(a)","Analista de Compliance","DPO","Gerente Jurídico"] },
+  { area:"Saúde", items:["Médico(a) Clínico(a) Geral","Médico(a) Especialista","Enfermeiro(a)","Psicólogo(a)","Fisioterapeuta","Nutricionista","Farmacêutico(a)","Dentista","Técnico(a) de Enfermagem"] },
+  { area:"Educação", items:["Professor(a) Educação Básica","Professor(a) Ensino Superior","Coordenador(a) Pedagógico(a)","Instrutor(a) Corporativo","Designer Instrucional","Tutor(a) EAD"] },
+  { area:"Engenharia", items:["Engenheiro(a) Civil","Engenheiro(a) Mecânico(a)","Engenheiro(a) Elétrico(a)","Engenheiro(a) de Produção","Engenheiro(a) Químico(a)","Engenheiro(a) Ambiental"] },
+];
+
+let selCargo = null, selArea = null, blurT = null;
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+function onCargoInput(){
+  const v = document.getElementById('cargo-input').value;
+  document.getElementById('cargo-clear').style.display = v ? 'block' : 'none';
+  selCargo = null; selArea = null;
+  updateCTA(); renderDd(v);
+}
+function onCargoFocus(){ renderDd(document.getElementById('cargo-input').value); }
+function onCargoBlur(){ blurT = setTimeout(() => document.getElementById('cargo-dd').classList.remove('open'), 200); }
+
+function renderDd(q){
+  const dd = document.getElementById('cargo-dd'), nq = norm(q.trim());
+  dd.innerHTML = '';
+  if(!nq){
+    CAREERS.forEach(a => { addSec(dd,a.area); a.items.slice(0,4).forEach(i => addItem(dd,i,a.area)); });
+  } else {
+    let tot = 0;
+    CAREERS.forEach(a => {
+      const m = a.items.filter(i => norm(i).includes(nq));
+      if(m.length){ addSec(dd,a.area); m.forEach(i => { addItem(dd,i,a.area); tot++; }); }
+    });
+    if(!tot){ const d=document.createElement('div'); d.className='ac-no'; d.textContent='Nenhum cargo encontrado'; dd.appendChild(d); }
+    const b=document.createElement('button'); b.className='ac-use';
+    b.textContent=`+ Usar "${q.trim()}"`;
+    b.onmousedown=()=>{ clearTimeout(blurT); pickCargo(q.trim(),null); };
+    dd.appendChild(b);
+  }
+  dd.classList.add('open');
+}
+function addSec(dd,t){ const d=document.createElement('div'); d.className='ac-section'; d.textContent=t; dd.appendChild(d); }
+function addItem(dd,item,area){ const el=document.createElement('div'); el.className='ac-item'; el.textContent=item; el.onmousedown=()=>{ clearTimeout(blurT); pickCargo(item,area); }; dd.appendChild(el); }
+
+function pickCargo(c,a){
+  selCargo=c; selArea=a;
+  document.getElementById('cargo-input').value='';
+  document.getElementById('cargo-input').placeholder='Cargo selecionado';
+  document.getElementById('cargo-dd').classList.remove('open');
+  document.getElementById('cargo-clear').style.display='none';
+  document.getElementById('quick-section').style.display='none';
+  const short = c.length > 36 ? c.slice(0,34)+'…' : c;
+  document.getElementById('cargo-badge').innerHTML =
+    `<div class="badge-sel"><span>${short}</span><button onclick="clearCargo()">✕</button></div>`;
+  updateCTA();
+}
+function clearCargo(){
+  selCargo=null; selArea=null;
+  document.getElementById('cargo-input').value='';
+  document.getElementById('cargo-input').placeholder='Ex: Desenvolvedor Pleno, Analista...';
+  document.getElementById('cargo-clear').style.display='none';
+  document.getElementById('cargo-badge').innerHTML='';
+  document.getElementById('quick-section').style.display='block';
+  updateCTA();
+}
+function updateCTA(){
+  const btn=document.getElementById('cta-btn');
+  btn.disabled=!selCargo;
+  btn.textContent=selCargo ? 'Continuar →' : 'Selecione um cargo para continuar';
+}
+function goNext(){
+  if(!selCargo) return;
+  const d = JSON.parse(localStorage.getItem('qms_data')||'{}');
+  d.cargo=selCargo; d.area=selArea;
+  localStorage.setItem('qms_data',JSON.stringify(d));
+  window.location.href='tela-1b-local.html';
+}
+</script>
+</body>
+</html>

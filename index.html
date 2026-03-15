@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quanto Ganha! — Descubra quanto você vale no mercado</title>
+<meta name="description" content="Compare seu salário com a média do mercado em segundos. Dados do CAGED. 100% grátis.">
+<meta property="og:title"       content="Quanto Ganha!">
+<meta property="og:description" content="Descubra se você está ganhando abaixo do mercado em segundos.">
+<meta property="og:image"       content="https://quantoganha.vercel.app/og.png">
+<meta property="og:url"         content="https://quantoganha.vercel.app">
+<meta name="twitter:card"       content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231D9E75'/><text y='24' x='6' font-size='20' font-weight='900' fill='white' font-family='system-ui'>$</text></svg>">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%;background:#0d0d0d;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
+
+  /* ── NAV ── */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;max-width:1100px;margin:0 auto}
+  .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .nav-icon{width:36px;height:36px;background:#1D9E75;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+  .nav-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{font-size:14px;color:rgba(255,255,255,0.5);text-decoration:none}
+  .nav-links a:hover{color:#fff}
+  .nav-cta{padding:9px 20px;background:#1D9E75;color:#fff;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}
+
+  /* ── HERO ── */
+  .hero{max-width:700px;margin:0 auto;padding:80px 24px 60px;text-align:center}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.25);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;color:#1D9E75;margin-bottom:28px}
+  h1{font-size:clamp(40px,7vw,64px);font-weight:900;line-height:1.1;letter-spacing:-2px;margin-bottom:20px}
+  h1 em{color:#1D9E75;font-style:normal}
+  .hero-sub{font-size:18px;color:rgba(255,255,255,0.5);line-height:1.6;max-width:520px;margin:0 auto 40px}
+
+  /* ── BOTÕES ── */
+  .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+  .btn-store{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:13px 22px;text-decoration:none;transition:border-color .15s}
+  .btn-store:hover{border-color:rgba(29,158,117,0.5)}
+  .btn-store-icon{font-size:26px}
+  .btn-store-text small{display:block;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px}
+  .btn-store-text strong{display:block;font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px}
+  .btn-web{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:13px 22px;text-decoration:none;font-size:15px;font-weight:600;color:rgba(255,255,255,0.7);transition:background .15s}
+  .btn-web:hover{background:rgba(255,255,255,0.1)}
+
+  /* ── SOCIAL PROOF ── */
+  .proof{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,0.35)}
+  .proof span{display:flex;align-items:center;gap:6px}
+
+  /* ── PREVIEW MOCKUP ── */
+  .mockup-sec{padding:0 24px 80px;max-width:900px;margin:0 auto}
+  .mockup-phone{
+    max-width:320px;margin:0 auto;
+    background:#1a1a1a;border-radius:40px;
+    border:1px solid rgba(255,255,255,0.1);
+    overflow:hidden;padding:20px;
+    box-shadow:0 40px 80px rgba(0,0,0,0.6);
+  }
+  .mock-header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .mock-dot{width:10px;height:10px;border-radius:50%;background:#1D9E75}
+  .mock-title{font-size:12px;color:rgba(255,255,255,0.4)}
+  .mock-big{font-size:52px;font-weight:900;color:#E24B4A;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+  .mock-desc{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:14px}
+  .mock-sep{height:1px;background:rgba(255,255,255,0.07);margin:10px 0}
+  .mock-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px}
+  .mock-label{color:rgba(255,255,255,0.4)}
+  .mock-val{font-weight:700;color:rgba(255,255,255,0.8)}
+  .mock-val.green{color:#1D9E75}
+  .mock-val.red{color:#E24B4A}
+
+  /* ── FEATURES ── */
+  .features{padding:0 24px 80px;max-width:1100px;margin:0 auto}
+  .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px}
+  .feat-card{background:#1a1a1a;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:22px}
+  .feat-icon{font-size:28px;margin-bottom:12px}
+  .feat-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.2px;margin-bottom:6px}
+  .feat-desc{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5}
+  .section-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.8px;text-align:center;margin-bottom:10px}
+  .section-title{font-size:clamp(28px,4vw,40px);font-weight:900;text-align:center;letter-spacing:-0.8px}
+
+  /* ── FOOTER ── */
+  footer{border-top:1px solid rgba(255,255,255,0.06);padding:32px 24px;max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  .footer-copy{font-size:13px;color:rgba(255,255,255,0.25)}
+  .footer-links{display:flex;gap:20px}
+  .footer-links a{font-size:13px;color:rgba(255,255,255,0.35);text-decoration:none}
+  .footer-links a:hover{color:#1D9E75}
+
+  @media(max-width:600px){
+    .nav-links{display:none}
+    h1{letter-spacing:-1px}
+    .btns{flex-direction:column;align-items:center}
+    .btn-store,.btn-web{width:100%;max-width:280px;justify-content:center}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="nav-icon">$</div>
+    <span class="nav-name">Quanto Ganha!</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Funcionalidades</a>
+    <a href="privacidade.html">Privacidade</a>
+    <a href="tela-1a-cargo.html" class="nav-cta">Calcular agora</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🇧🇷 Dados do CAGED · 100% grátis</div>
+  <h1>Você está ganhando<br><em>o que merece?</em></h1>
+  <p class="hero-sub">Compare seu salário com a média do mercado em segundos. Baseado em dados reais do CAGED.</p>
+
+  <div class="btns">
+    <!-- Troque o href pelo link real quando publicar na Play Store -->
+    <a class="btn-store" href="https://play.google.com/store/apps/details?id=com.quantoganha" target="_blank">
+      <span class="btn-store-icon">🤖</span>
+      <div class="btn-store-text">
+        <small>Disponível no</small>
+        <strong>Google Play</strong>
+      </div>
+    </a>
+    <a class="btn-store" href="#" style="opacity:.45;cursor:not-allowed" title="Em breve">
+      <span class="btn-store-icon">🍎</span>
+      <div class="btn-store-text">
+        <small>Em breve na</small>
+        <strong>App Store</strong>
+      </div>
+    </a>
+    <a class="btn-web" href="tela-1a-cargo.html">
+      🌐 Usar no navegador
+    </a>
+  </div>
+
+  <div class="proof">
+    <span>✓ Sem cadastro necessário</span>
+    <span>✓ 90+ cargos</span>
+    <span>✓ 50+ cidades</span>
+    <span>✓ Leva menos de 1 minuto</span>
+  </div>
+</section>
+
+<!-- MOCKUP -->
+<div class="mockup-sec">
+  <div class="mockup-phone">
+    <div class="mock-header">
+      <div class="mock-dot"></div>
+      <span class="mock-title">Seu resultado</span>
+    </div>
+    <div class="mock-big">−18%</div>
+    <div class="mock-desc">abaixo do mercado para<br><strong style="color:rgba(255,255,255,.6)">Dev Pleno · São Paulo · Remoto</strong></div>
+    <div class="mock-sep"></div>
+    <div class="mock-row"><span class="mock-label">Meu pacote</span><span class="mock-val">R$ 8.200</span></div>
+    <div class="mock-row"><span class="mock-label">Média do mercado</span><span class="mock-val green">R$ 10.000</span></div>
+    <div class="mock-row"><span class="mock-label">Deixando na mesa / mês</span><span class="mock-val red">R$ 1.800</span></div>
+    <div class="mock-row"><span class="mock-label">Perda acumulada / ano</span><span class="mock-val red">R$ 21.600</span></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <p class="section-label">O que o app faz</p>
+  <h2 class="section-title">Tudo que você precisa<br>para negociar melhor</h2>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Benchmark salarial</div>
+      <div class="feat-desc">Compare seu pacote completo (fixo + variável + benefícios) com a média real do mercado para o seu cargo e cidade.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💼</div>
+      <div class="feat-title">Vagas acima da sua faixa</div>
+      <div class="feat-desc">Mostramos vagas que pagam mais do que você ganha hoje, filtradas por cargo, cidade e modelo de trabalho.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Simulador de negociação</div>
+      <div class="feat-desc">Treine com uma IA que simula um RH resistente. Chegue preparado para a reunião com argumentos baseados em dados reais.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📈</div>
+      <div class="feat-title">Tracker mensal</div>
+      <div class="feat-desc">Acompanhe a evolução do mercado mês a mês e receba alertas quando a defasagem aumentar.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎬</div>
+      <div class="feat-title">Card viral para TikTok</div>
+      <div class="feat-desc">Gere um card personalizado e compartilhe nas redes. Todo mundo quer saber se está ganhando pouco.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">100% anônimo</div>
+      <div class="feat-desc">Seus dados salariais nunca são compartilhados ou vendidos. Análise local, sem identificação pessoal.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="footer-copy">© 2025 Quanto Ganha! · quantoganha.vercel.app</span>
+  <div class="footer-links">
+    <a href="privacidade.html">Política de Privacidade</a>
+    <a href="termos.html">Termos de Uso</a>
+    <a href="mailto:contato@quantoganha.com.br">Contato</a>
+  </div>
+</footer>
+
+</body>
+</html>
