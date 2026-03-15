@@ -523,7 +523,7 @@
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <button class="back-btn" onclick="window.location.href='tela-1-input.html'">← Refazer análise</button>
+    <button class="back-btn" onclick="window.location.href='tela-1a-cargo.html'">← Refazer análise</button>
     <div class="logo-small">Qual Meu Salário</div>
   </div>
 
@@ -914,7 +914,7 @@ function fmt(n){ return 'R$ ' + Math.round(n).toLocaleString('pt-BR'); }
 
 /* ── CARREGA RESULTADO ── */
 const raw = localStorage.getItem('qms_result');
-if(!raw){ window.location.href = 'tela-1-input.html'; }
+if(!raw){ window.location.href = 'tela-1a-cargo.html'; }
 const R = JSON.parse(raw);
 
 /* ── TAGS ── */
