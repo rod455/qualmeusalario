@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   RewardedAd,
   RewardedAdEventType,
-  AdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
 import Constants from 'expo-constants';
@@ -14,27 +13,36 @@ import { computeSalaryResult, fmtBRL } from '../../lib/salary';
 import { COLORS } from '../../lib/constants';
 import { saveAnalysis } from '../../lib/supabase';
 
-// Em produção usa o ID real; em dev usa o ID de teste do AdMob
 const IS_DEV = __DEV__;
 const AD_UNIT_ID = IS_DEV
   ? TestIds.REWARDED
   : (Constants.expoConfig?.extra?.admobRewardedAndroid as string);
 
-const rewarded = RewardedAd.createForAdRequest(AD_UNIT_ID, {
-  requestNonPersonalizedAdsOnly: false,
-});
+let rewarded: ReturnType<typeof RewardedAd.createForAdRequest> | null = null;
+try {
+  rewarded = RewardedAd.createForAdRequest(AD_UNIT_ID, {
+    requestNonPersonalizedAdsOnly: false,
+  });
+} catch { rewarded = null; }
+
+const STEPS = [
+  { label: 'Buscando dados do CAGED 2024...',        duration: 5000 },
+  { label: 'Calculando benchmark para seu cargo...',  duration: 7000 },
+  { label: 'Aplicando ajuste regional...',            duration: 6000 },
+  { label: 'Comparando com 2.4M de registros...',    duration: 7000 },
+  { label: 'Gerando seu relatório salarial...',       duration: 5000 },
+];
+const TOTAL_MS = 30000;
 
 export default function RewardScreen() {
-  const store  = useOnboardingStore();
-  const [secsLeft, setSecsLeft]       = useState(30);
-  const [adDone, setAdDone]           = useState(false);
-  const [previewReveal, setReveal]    = useState(false);
-  const [adLoaded, setAdLoaded]       = useState(false);
-  const [adError, setAdError]         = useState(false);
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  const intervalRef  = useRef<ReturnType<typeof setInterval>>();
+  const store = useOnboardingStore();
+  const [stepIdx, setStepIdx]   = useState(0);
+  const [secsLeft, setSecsLeft] = useState(30);
+  const progressAnim  = useRef(new Animated.Value(0)).current;
+  const stepAnim      = useRef(new Animated.Value(1)).current;
+  const fallbackStarted = useRef(false);
+  const intervalRef     = useRef<ReturnType<typeof setInterval>>();
 
-  // ── Calcula resultado ────────────────────────────────────────────────────
   const result = computeSalaryResult({
     cargo:     store.cargo,
     area:      store.area,
@@ -45,7 +53,6 @@ export default function RewardScreen() {
     extras:    store.extras,
   });
 
-  // ── Salva resultado no store e Supabase ──────────────────────────────────
   useEffect(() => {
     store.setResult(result);
     saveAnalysis({
@@ -58,51 +65,55 @@ export default function RewardScreen() {
     });
   }, []);
 
-  // ── AdMob Rewarded ────────────────────────────────────────────────────────
   useEffect(() => {
-    const unsubLoaded  = rewarded.addAdEventListener(AdEventType.LOADED, () => setAdLoaded(true));
-    const unsubError   = rewarded.addAdEventListener(AdEventType.ERROR,  () => { setAdError(true); startFallback(); });
-    const unsubClosed  = rewarded.addAdEventListener(AdEventType.CLOSED, onAdDone);
-    const unsubEarned  = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, onAdDone);
-
-    rewarded.load();
-
-    return () => { unsubLoaded(); unsubError(); unsubClosed(); unsubEarned(); };
+    startCountdown();
+    tryLoadAd();
   }, []);
 
-  // Mostra o ad assim que carregar
-  useEffect(() => {
-    if (adLoaded) {
-      rewarded.show().catch(() => startFallback());
-    }
-  }, [adLoaded]);
+  function tryLoadAd() {
+    if (!rewarded) return;
+    try {
+      rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+        try { rewarded?.show(); } catch {}
+      });
+      rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, onAdDone);
+      rewarded.load();
+    } catch {}
+  }
 
-  // ── Fallback countdown 30s (se ad falhar ou não carregar) ─────────────────
-  function startFallback() {
+  function startCountdown() {
+    if (fallbackStarted.current) return;
+    fallbackStarted.current = true;
+
     Animated.timing(progressAnim, {
-      toValue: 1, duration: 30000, useNativeDriver: false,
+      toValue: 1, duration: TOTAL_MS, useNativeDriver: false,
     }).start();
 
     let t = 30;
     intervalRef.current = setInterval(() => {
       t--;
       setSecsLeft(t);
-      if (t <= 12) setReveal(true);
-      if (t <= 0)  { clearInterval(intervalRef.current); onAdDone(); }
+      if (t <= 0) { clearInterval(intervalRef.current); onAdDone(); }
     }, 1000);
+
+    let elapsed = 0;
+    STEPS.forEach((step, i) => {
+      setTimeout(() => {
+        Animated.timing(stepAnim, { toValue:0, duration:250, useNativeDriver:true }).start(() => {
+          setStepIdx(i);
+          Animated.timing(stepAnim, { toValue:1, duration:350, useNativeDriver:true }).start();
+        });
+      }, elapsed);
+      elapsed += step.duration;
+    });
   }
 
   function onAdDone() {
     clearInterval(intervalRef.current);
-    setAdDone(true);
-    setReveal(true);
-  }
-
-  function goResult() {
     router.replace('/(tabs)/resultado');
   }
-
   const ab = result.diff >= 0;
+  const pct = Math.round(((30 - secsLeft) / 30) * 100);
 
   return (
     <SafeAreaView style={s.safe}>
@@ -110,124 +121,106 @@ export default function RewardScreen() {
       {/* Topbar */}
       <View style={s.topbar}>
         <View style={s.logoRow}>
-          <View style={s.logoIcon}><Text style={s.logoIconText}>$</Text></View>
-          <Text style={s.logoName}>Qual Meu Salário?</Text>
-        </View>
-        <Text style={s.adNotice}>Anúncio</Text>
-      </View>
-
-      {/* Teaser */}
-      <View style={s.teaser}>
-        <View style={s.badge}><Text style={s.badgeText}>🔍 ANÁLISE EM ANDAMENTO</Text></View>
-        <Text style={s.teaserTitle}>
-          Analisando {store.cargo.split('(')[0].trim()} em {store.cidade?.nome}
-        </Text>
-        <Text style={s.teaserSub}>Assista o anúncio e libere o resultado completo</Text>
-      </View>
-
-      {/* Preview card — borrado até reveal */}
-      <View style={s.previewCard}>
-        <Text style={s.previewEyebrow}>SEU RESULTADO MOSTRARÁ</Text>
-        <Text style={[s.previewBig, { opacity: previewReveal ? 1 : 0.1 }]}>
-          {ab ? '+' : ''}{result.diff}%
-        </Text>
-        <Text style={s.previewDesc}>
-          {ab ? 'acima' : 'abaixo'} do mercado para o seu cargo
-        </Text>
-        <View style={s.divider} />
-        <View style={s.previewRow}>
-          <Text style={s.previewLabel}>Diferença mensal</Text>
-          <Text style={[s.previewVal, { opacity: previewReveal ? 1 : 0.1 }]}>
-            {fmtBRL(result.diffMes)}
-          </Text>
-        </View>
-        <View style={s.previewRow}>
-          <Text style={s.previewLabel}>Diferença anual</Text>
-          <Text style={[s.previewVal, { opacity: previewReveal ? 1 : 0.1 }]}>
-            {fmtBRL(result.diffAno)}
-          </Text>
+          <Image source={require('../../assets/images/icon.png')} style={s.logoImg} resizeMode="contain" />
+          <Text style={s.logoName}>Quanto Ganha!</Text>
         </View>
       </View>
 
-      {/* ── ESPAÇO DO AD ──
-          O AdMob mostra o anúncio como overlay fullscreen nativo.
-          Este bloco só aparece como fallback quando o ad falha.
-       ── */}
-      {(adError || !adLoaded) && !adDone && (
-        <View style={s.adFallback}>
-          <Text style={s.adSponsored}>Patrocinado</Text>
-          <Text style={s.adFallbackText}>Carregando anúncio...</Text>
-          <View style={s.skipBadge}>
-            <Text style={s.skipText}>{secsLeft}s</Text>
-          </View>
-        </View>
-      )}
+      <View style={s.body}>
 
-      {/* Progress */}
-      {!adDone && (
-        <View style={s.progressSection}>
-          <View style={s.progressTop}>
-            <Text style={s.progressLabel}>Preparando seu resultado...</Text>
-            <Text style={s.progressSecs}>{secsLeft}</Text>
-          </View>
+        {/* Ícone */}
+        <View style={s.calcIconWrap}>
+          <Text style={s.calcIcon}>⚙️</Text>
+        </View>
+
+        <Text style={s.title}>Calculando{'\n'}seus dados...</Text>
+        <Text style={s.subtitle}>Para {store.cargo.split('(')[0].trim()} em {store.cidade?.nome}</Text>
+
+        {/* Etapa atual */}
+        <Animated.View style={[s.stepCard, { opacity: stepAnim }]}>
+          <View style={s.stepDot} />
+          <Text style={s.stepTxt}>{STEPS[stepIdx]?.label}</Text>
+        </Animated.View>
+
+        {/* Progresso */}
+        <View style={s.progressWrap}>
           <View style={s.progressBg}>
-            <Animated.View
-              style={[s.progressFill, {
-                width: progressAnim.interpolate({
-                  inputRange: [0, 1], outputRange: ['0%', '100%'],
-                }),
-              }]}
-            />
+            <Animated.View style={[s.progressFill, {
+              width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }),
+            }]} />
+          </View>
+          <View style={s.progressLabels}>
+            <Text style={s.progressPct}>{pct}% concluído</Text>
+            <Text style={s.progressSecs}>{secsLeft}s</Text>
           </View>
         </View>
-      )}
 
-      {/* CTA — aparece quando ad conclui */}
-      {adDone && (
-        <View style={s.ctaSection}>
-          <TouchableOpacity style={s.ctaBtn} onPress={goResult}>
-            <Text style={s.ctaBtnText}>Ver meu resultado agora →</Text>
-          </TouchableOpacity>
+        {/* Preview sempre bloqueado */}
+        <View style={s.previewCard}>
+          <Text style={s.previewEye}>SEU RESULTADO</Text>
+          <View style={s.previewPctRow}>
+            <View style={s.previewBlocked}>
+              <Text style={s.previewBlockedTxt}>••••</Text>
+            </View>
+          </View>
+          <Text style={s.previewDesc}>aguardando conclusão do cálculo</Text>
+          <View style={s.divider} />
+          <View style={s.previewRow}>
+            <Text style={s.previewLabel}>Diferença mensal</Text>
+            <View style={s.previewValBlocked}><Text style={s.previewBlockSmall}>••••</Text></View>
+          </View>
+          <View style={s.previewRow}>
+            <Text style={s.previewLabel}>Diferença anual</Text>
+            <View style={s.previewValBlocked}><Text style={s.previewBlockSmall}>••••</Text></View>
+          </View>
+          <View style={s.lockRow}>
+            <Text style={s.lockTxt}>🔒 Resultado liberado ao concluir</Text>
+          </View>
         </View>
-      )}
+      </View>
 
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe:          { flex:1, backgroundColor:'#0a0a0a' },
-  topbar:        { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:22, paddingTop:20, paddingBottom:16 },
-  logoRow:       { flexDirection:'row', alignItems:'center', gap:9 },
-  logoIcon:      { width:32, height:32, backgroundColor:COLORS.primary, borderRadius:9, alignItems:'center', justifyContent:'center' },
-  logoIconText:  { color:'#fff', fontWeight:'800', fontSize:15 },
-  logoName:      { fontSize:14, fontWeight:'700', color:'rgba(255,255,255,0.7)' },
-  adNotice:      { fontSize:11, fontWeight:'600', color:'rgba(255,255,255,0.25)', textTransform:'uppercase', letterSpacing:0.5 },
-  teaser:        { paddingHorizontal:22 },
-  badge:         { alignSelf:'flex-start', backgroundColor:'rgba(29,158,117,0.15)', borderRadius:20, paddingHorizontal:12, paddingVertical:5, marginBottom:14 },
-  badgeText:     { color:COLORS.primary, fontSize:12, fontWeight:'700', letterSpacing:0.5 },
-  teaserTitle:   { fontSize:22, fontWeight:'800', color:'#fff', lineHeight:28, letterSpacing:-0.4, marginBottom:7 },
-  teaserSub:     { fontSize:14, color:'rgba(255,255,255,0.45)', lineHeight:20 },
-  previewCard:   { margin:18, marginHorizontal:22, backgroundColor:'rgba(255,255,255,0.04)', borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:18, padding:18 },
-  previewEyebrow:{ fontSize:11, fontWeight:'700', color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
-  previewBig:    { fontSize:44, fontWeight:'800', color:'#E24B4A', letterSpacing:-1, lineHeight:48, marginBottom:4 },
-  previewDesc:   { fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:14 },
-  divider:       { height:0.5, backgroundColor:'rgba(255,255,255,0.08)', marginVertical:10 },
-  previewRow:    { flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:9 },
-  previewLabel:  { fontSize:13, color:'rgba(255,255,255,0.4)' },
-  previewVal:    { fontSize:14, fontWeight:'700', color:'rgba(255,255,255,0.8)' },
-  adFallback:    { marginHorizontal:22, height:90, backgroundColor:'rgba(255,255,255,0.05)', borderWidth:1, borderColor:'rgba(255,255,255,0.09)', borderRadius:12, alignItems:'center', justifyContent:'center', position:'relative' },
-  adSponsored:   { position:'absolute', top:8, left:12, fontSize:10, color:'rgba(255,255,255,0.16)', fontWeight:'600', textTransform:'uppercase', letterSpacing:0.5 },
-  adFallbackText:{ fontSize:12, color:'rgba(255,255,255,0.18)' },
-  skipBadge:     { position:'absolute', top:8, right:12, backgroundColor:'rgba(255,255,255,0.08)', borderRadius:20, paddingHorizontal:10, paddingVertical:4 },
-  skipText:      { fontSize:11, fontWeight:'700', color:'rgba(255,255,255,0.4)' },
-  progressSection:{ paddingHorizontal:22, paddingTop:14 },
-  progressTop:   { flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:10 },
-  progressLabel: { fontSize:13, color:'rgba(255,255,255,0.45)', fontWeight:'500' },
-  progressSecs:  { fontSize:20, fontWeight:'800', color:COLORS.primary, letterSpacing:-0.5 },
-  progressBg:    { height:5, backgroundColor:'rgba(255,255,255,0.07)', borderRadius:3, overflow:'hidden' },
-  progressFill:  { height:'100%', backgroundColor:COLORS.primary, borderRadius:3 },
-  ctaSection:    { marginHorizontal:22, marginTop:'auto', paddingTop:16, paddingBottom:32 },
-  ctaBtn:        { backgroundColor:COLORS.primary, borderRadius:14, padding:16, alignItems:'center' },
-  ctaBtnText:    { color:'#fff', fontSize:16, fontWeight:'800', letterSpacing:-0.2 },
+  safe:           { flex:1, backgroundColor:COLORS.dark },
+  topbar:         { flexDirection:'row', alignItems:'center', paddingHorizontal:20, paddingTop:14, paddingBottom:10 },
+  logoRow:        { flexDirection:'row', alignItems:'center', gap:8 },
+  logoImg:        { width:30, height:30, borderRadius:8 },
+  logoName:       { fontSize:14, fontWeight:'700', color:'rgba(255,255,255,0.8)' },
+  body:           { flex:1, paddingHorizontal:20, paddingTop:8, gap:14 },
+  calcIconWrap:   { width:52, height:52, borderRadius:14, backgroundColor:'rgba(245,168,32,0.12)', borderWidth:1, borderColor:'rgba(245,168,32,0.2)', alignItems:'center', justifyContent:'center' },
+  calcIcon:       { fontSize:24 },
+  title:          { fontSize:26, fontWeight:'900', color:'#fff', letterSpacing:-0.7, lineHeight:32 },
+  subtitle:       { fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:-6 },
+  stepCard:       { flexDirection:'row', alignItems:'center', gap:10, backgroundColor:'rgba(255,255,255,0.05)', borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:12, paddingHorizontal:14, paddingVertical:11 },
+  stepDot:        { width:8, height:8, borderRadius:4, backgroundColor:COLORS.primary, flexShrink:0 },
+  stepTxt:        { fontSize:13, color:'rgba(255,255,255,0.6)', flex:1 },
+  progressWrap:   { gap:7 },
+  progressBg:     { height:5, backgroundColor:'rgba(255,255,255,0.07)', borderRadius:3, overflow:'hidden' },
+  progressFill:   { height:'100%', backgroundColor:COLORS.primary, borderRadius:3 },
+  progressLabels: { flexDirection:'row', justifyContent:'space-between' },
+  progressPct:    { fontSize:12, color:'rgba(255,255,255,0.35)' },
+  progressSecs:   { fontSize:12, fontWeight:'700', color:COLORS.primary },
+  previewCard:    { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:20, padding:16 },
+  previewEye:     { fontSize:10, fontWeight:'700', color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 },
+  previewPctRow:  { marginBottom:6 },
+  previewPct:     { fontSize:48, fontWeight:'900', letterSpacing:-1.5, lineHeight:52 },
+  previewBlocked: { backgroundColor:'rgba(255,255,255,0.07)', borderRadius:10, paddingHorizontal:20, paddingVertical:10, alignSelf:'flex-start' },
+  previewBlockedTxt:{ fontSize:28, fontWeight:'900', color:'rgba(255,255,255,0.15)', letterSpacing:4 },
+  green:          { color:COLORS.success },
+  red:            { color:COLORS.danger },
+  previewDesc:    { fontSize:12, color:'rgba(255,255,255,0.35)', marginBottom:10 },
+  divider:        { height:0.5, backgroundColor:'rgba(255,255,255,0.08)', marginBottom:10 },
+  previewRow:     { flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:7 },
+  previewLabel:   { fontSize:12, color:'rgba(255,255,255,0.4)' },
+  previewVal:     { fontSize:14, fontWeight:'800', color:'rgba(255,255,255,0.85)' },
+  previewValBlocked:{ backgroundColor:'rgba(255,255,255,0.06)', borderRadius:6, paddingHorizontal:10, paddingVertical:3 },
+  previewBlockSmall:{ fontSize:12, color:'rgba(255,255,255,0.15)', letterSpacing:3 },
+  lockRow:        { marginTop:6, alignItems:'center' },
+  lockTxt:        { fontSize:11, color:'rgba(255,255,255,0.2)' },
+  ctaWrap:        { paddingHorizontal:20, paddingBottom:28, paddingTop:10 },
+  ctaBtn:         { backgroundColor:COLORS.primary, borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },
+  ctaBtnTxt:      { color:COLORS.dark, fontSize:16, fontWeight:'900', letterSpacing:-0.3 },
 });

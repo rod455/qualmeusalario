@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791288170240",
+    "project_id": "quanto-ganha",
+    "storage_bucket": "quanto-ganha.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791288170240:android:e384dcc53abeba6d1cd5e5",
+        "android_client_info": {
+          "package_name": "com.quantoganha.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt5wSbJlSF9DyCK_M47bJLL5T7s4MFBHA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
