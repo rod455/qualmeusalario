@@ -10,31 +10,35 @@
 <meta property="og:image"       content="https://quantoganha.vercel.app/og.png">
 <meta property="og:url"         content="https://quantoganha.vercel.app">
 <meta name="twitter:card"       content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231D9E75'/><text y='24' x='6' font-size='20' font-weight='900' fill='white' font-family='system-ui'>$</text></svg>">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{min-height:100%;background:#0d0d0d;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
+  :root{--primary:#F5A820;--secondary:#17C8E8;--bg:#0B1838;--surface:#0F2048;}
+  html,body{min-height:100%;background:#0B1838;font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#fff;overflow-x:hidden}
 
   /* ── NAV ── */
   nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;max-width:1100px;margin:0 auto}
   .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-  .nav-icon{width:36px;height:36px;background:#1D9E75;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
+  .nav-icon{width:36px;height:36px;background:#F5A820;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff}
   .nav-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px}
   .nav-links{display:flex;gap:24px;align-items:center}
   .nav-links a{font-size:14px;color:rgba(255,255,255,0.5);text-decoration:none}
   .nav-links a:hover{color:#fff}
-  .nav-cta{padding:9px 20px;background:#1D9E75;color:#fff;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}
+  .nav-cta{padding:9px 20px;background:#F5A820;color:#0B1838;border-radius:28px;font-size:14px;font-weight:700;text-decoration:none}
 
   /* ── HERO ── */
   .hero{max-width:700px;margin:0 auto;padding:80px 24px 60px;text-align:center}
-  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.25);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;color:#1D9E75;margin-bottom:28px}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(23,200,232,0.12);border:1px solid rgba(23,200,232,0.25);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;color:#F5A820;margin-bottom:28px}
   h1{font-size:clamp(40px,7vw,64px);font-weight:900;line-height:1.1;letter-spacing:-2px;margin-bottom:20px}
-  h1 em{color:#1D9E75;font-style:normal}
+  h1 em{color:#F5A820;font-style:normal}
   .hero-sub{font-size:18px;color:rgba(255,255,255,0.5);line-height:1.6;max-width:520px;margin:0 auto 40px}
 
   /* ── BOTÕES ── */
   .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
-  .btn-store{display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:13px 22px;text-decoration:none;transition:border-color .15s}
+  .btn-store{display:flex;align-items:center;gap:10px;background:#0F2048;border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:13px 22px;text-decoration:none;transition:border-color .15s}
   .btn-store:hover{border-color:rgba(29,158,117,0.5)}
   .btn-store-icon{font-size:26px}
   .btn-store-text small{display:block;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px}
@@ -50,13 +54,13 @@
   .mockup-sec{padding:0 24px 80px;max-width:900px;margin:0 auto}
   .mockup-phone{
     max-width:320px;margin:0 auto;
-    background:#1a1a1a;border-radius:40px;
+    background:#0F2048;border-radius:40px;
     border:1px solid rgba(255,255,255,0.1);
     overflow:hidden;padding:20px;
     box-shadow:0 40px 80px rgba(0,0,0,0.6);
   }
   .mock-header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
-  .mock-dot{width:10px;height:10px;border-radius:50%;background:#1D9E75}
+  .mock-dot{width:10px;height:10px;border-radius:50%;background:#F5A820}
   .mock-title{font-size:12px;color:rgba(255,255,255,0.4)}
   .mock-big{font-size:52px;font-weight:900;color:#E24B4A;letter-spacing:-2px;line-height:1;margin-bottom:4px}
   .mock-desc{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:14px}
@@ -64,13 +68,13 @@
   .mock-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px}
   .mock-label{color:rgba(255,255,255,0.4)}
   .mock-val{font-weight:700;color:rgba(255,255,255,0.8)}
-  .mock-val.green{color:#1D9E75}
+  .mock-val.green{color:#F5A820}
   .mock-val.red{color:#E24B4A}
 
   /* ── FEATURES ── */
   .features{padding:0 24px 80px;max-width:1100px;margin:0 auto}
   .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px}
-  .feat-card{background:#1a1a1a;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:22px}
+  .feat-card{background:#0F2048;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:22px}
   .feat-icon{font-size:28px;margin-bottom:12px}
   .feat-title{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.2px;margin-bottom:6px}
   .feat-desc{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5}
@@ -82,7 +86,7 @@
   .footer-copy{font-size:13px;color:rgba(255,255,255,0.25)}
   .footer-links{display:flex;gap:20px}
   .footer-links a{font-size:13px;color:rgba(255,255,255,0.35);text-decoration:none}
-  .footer-links a:hover{color:#1D9E75}
+  .footer-links a:hover{color:#F5A820}
 
   @media(max-width:600px){
     .nav-links{display:none}
@@ -101,15 +105,15 @@
   </a>
   <div class="nav-links">
     <a href="#features">Funcionalidades</a>
-    <a href="privacidade.html">Privacidade</a>
-    <a href="tela-1a-cargo.html" class="nav-cta">Calcular agora</a>
+    <a href="/privacidade.html">Privacidade</a>
+    <a href="public/tela-1a-cargo.html" class="nav-cta">Calcular agora</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
   <div class="hero-badge">🇧🇷 Dados do CAGED · 100% grátis</div>
-  <h1>Você está ganhando<br><em>o que merece?</em></h1>
+  <h1>Você está ganhando<br><em style="color:#F5A820;font-style:normal">o que merece?</em></h1>
   <p class="hero-sub">Compare seu salário com a média do mercado em segundos. Baseado em dados reais do CAGED.</p>
 
   <div class="btns">
@@ -128,7 +132,7 @@
         <strong>App Store</strong>
       </div>
     </a>
-    <a class="btn-web" href="tela-1a-cargo.html">
+    <a class="btn-web" href="public/tela-1a-cargo.html">
       🌐 Usar no navegador
     </a>
   </div>
@@ -199,8 +203,8 @@
 <footer>
   <span class="footer-copy">© 2025 Quanto Ganha! · quantoganha.vercel.app</span>
   <div class="footer-links">
-    <a href="privacidade.html">Política de Privacidade</a>
-    <a href="termos.html">Termos de Uso</a>
+    <a href="/privacidade.html">Política de Privacidade</a>
+    <a href="/termos.html">Termos de Uso</a>
     <a href="mailto:contato@quantoganha.com.br">Contato</a>
   </div>
 </footer>
