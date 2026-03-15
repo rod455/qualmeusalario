@@ -1360,6 +1360,11 @@ function setTab(tab){
 
     if(tab === 'perfil') populatePerfil();
 
+    if(tab === 'tracker'){
+      const overlay = document.querySelector('#screen-tracker .lock-overlay');
+      if(overlay) overlay.style.display = isLoggedIn() ? 'none' : 'flex';
+    }
+
     if(tab === 'vagas') {
       if(!isLoggedIn()){
         showVagasGate('login');
@@ -1475,14 +1480,22 @@ async function loadVagas(){
     `${R?.cidade?.nomad ? 'Nomad Digital' : cidade} e remoto${mySal > 0 ? ' · acima de R$ ' + Math.round(mySal).toLocaleString('pt-BR') : ''}`;
 
   const MOCK = [
-    {id:'1',titulo:'Desenvolvedor(a) Pleno — Backend Node.js',empresa:'Nubank',cidade:'São Paulo, SP',modelo:'remoto',salario:11500,link:'https://nubank.com.br/carreiras',tempo:'2h',descricao:'Vaga 100% remota. Node.js, TypeScript e AWS.',fonte:'Adzuna'},
-    {id:'2',titulo:'Software Engineer — Full Stack',empresa:'iFood',cidade:'São Paulo, SP',modelo:'hibrido',salario:10800,link:'https://careers.ifood.com',tempo:'5h',descricao:'Trabalhe em produtos usados por 50M de pessoas. React, Python, Kafka.',fonte:'Adzuna'},
-    {id:'3',titulo:'Desenvolvedor Pleno — Python/Django',empresa:'Creditas',cidade:'São Paulo, SP',modelo:'remoto',salario:10200,link:'https://creditas.com/vagas',tempo:'1d',descricao:'APIs REST, PostgreSQL e microsserviços.',fonte:'Adzuna'},
-    {id:'4',titulo:'Backend Developer — Java/Spring',empresa:'BTG Pactual',cidade:'São Paulo, SP',modelo:'hibrido',salario:12000,link:'https://btgpactual.com/careers',tempo:'3d',descricao:'Java 17, Spring Boot, Kafka, mercado financeiro.',fonte:'Adzuna'},
-    {id:'5',titulo:'Dev Pleno — React Native',empresa:'PicPay',cidade:'São Paulo, SP',modelo:'remoto',salario:10500,link:'https://picpay.com/vagas',tempo:'6h',descricao:'+30M usuários. React Native, Redux, CI/CD.',fonte:'Adzuna'},
-    {id:'6',titulo:'Engenheiro(a) de Dados Pleno',empresa:'Mercado Livre',cidade:'São Paulo, SP',modelo:'hibrido',salario:13000,link:'https://jobs.mercadolibre.com',tempo:'12h',descricao:'Python, Spark, BigQuery, Airflow, dbt.',fonte:'Adzuna'},
-    {id:'7',titulo:'Product Manager — Plataforma',empresa:'Stone',cidade:'São Paulo, SP',modelo:'hibrido',salario:14500,link:'https://jobs.stone.com.br',tempo:'1d',descricao:'OKRs, A/B testing, roadmap de produto.',fonte:'Adzuna'},
-    {id:'8',titulo:'Analista de Dados Senior',empresa:'Gympass',cidade:'São Paulo, SP',modelo:'remoto',salario:9800,link:'https://jobs.gympass.com',tempo:'4h',descricao:'SQL, Python, dbt, Looker. Data-driven decisions.',fonte:'Adzuna'},
+    {id:'1',titulo:'Desenvolvedor(a) Pleno — Backend Node.js',empresa:'Nubank',cidade:'São Paulo, SP',modelo:'remoto',salario:11500,
+     link:'https://boards.greenhouse.io/nubank',tempo:'2h',descricao:'Vaga 100% remota. Node.js, TypeScript e AWS.',fonte:'Adzuna'},
+    {id:'2',titulo:'Software Engineer — Full Stack',empresa:'iFood',cidade:'São Paulo, SP',modelo:'hibrido',salario:10800,
+     link:'https://careers.ifood.com/jobs',tempo:'5h',descricao:'Trabalhe em produtos usados por 50M de pessoas. React, Python, Kafka.',fonte:'Adzuna'},
+    {id:'3',titulo:'Desenvolvedor Pleno — Python/Django',empresa:'Creditas',cidade:'São Paulo, SP',modelo:'remoto',salario:10200,
+     link:'https://jobs.lever.co/creditas',tempo:'1d',descricao:'APIs REST, PostgreSQL e microsserviços.',fonte:'Adzuna'},
+    {id:'4',titulo:'Backend Developer — Java/Spring',empresa:'BTG Pactual',cidade:'São Paulo, SP',modelo:'hibrido',salario:12000,
+     link:'https://btgpactual.gupy.io/',tempo:'3d',descricao:'Java 17, Spring Boot, Kafka, mercado financeiro.',fonte:'Adzuna'},
+    {id:'5',titulo:'Dev Pleno — React Native',empresa:'PicPay',cidade:'São Paulo, SP',modelo:'remoto',salario:10500,
+     link:'https://picpay.gupy.io/',tempo:'6h',descricao:'+30M usuários. React Native, Redux, CI/CD.',fonte:'Adzuna'},
+    {id:'6',titulo:'Engenheiro(a) de Dados Pleno',empresa:'Mercado Livre',cidade:'São Paulo, SP',modelo:'hibrido',salario:13000,
+     link:'https://jobs.mercadolibre.com/jobs',tempo:'12h',descricao:'Python, Spark, BigQuery, Airflow, dbt.',fonte:'Adzuna'},
+    {id:'7',titulo:'Product Manager — Plataforma',empresa:'Stone',cidade:'São Paulo, SP',modelo:'hibrido',salario:14500,
+     link:'https://stone.gupy.io/',tempo:'1d',descricao:'OKRs, A/B testing, roadmap de produto.',fonte:'Adzuna'},
+    {id:'8',titulo:'Analista de Dados Senior',empresa:'Gympass',cidade:'São Paulo, SP',modelo:'remoto',salario:9800,
+     link:'https://boards.greenhouse.io/gympass',tempo:'4h',descricao:'SQL, Python, dbt, Looker. Data-driven decisions.',fonte:'Adzuna'},
   ];
 
   let vagas = [];
@@ -1569,7 +1582,8 @@ function renderVagas(filter){
         <span class="vaga-meta-item">🕐 ${v.tempo}</span>
         ${v.fonte?`<span class="vaga-meta-item">📌 ${v.fonte}</span>`:''}
       </div>
-      <a href="${v.link}" target="_blank" rel="noopener" class="vaga-link-btn">Ver vaga →</a>`;
+      <a href="${v.link}" target="_blank" rel="noopener noreferrer" class="vaga-link-btn"
+         onclick="event.stopPropagation()">Ver vaga →</a>`;
     list.appendChild(card);
   });
 
