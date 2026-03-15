@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0B1838"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.quantoganha.app",
@@ -45,7 +47,10 @@
       "expo-font",
       [
         "expo-splash-screen",
-        { "backgroundColor": "#0B1838", "image": "./assets/images/splash.png" }
+        {
+          "backgroundColor": "#0B1838",
+          "image": "./assets/images/splash.png"
+        }
       ],
       [
         "expo-notifications",
@@ -59,24 +64,27 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-9316035916536420~1961894132",
-          "iosAppId":     "ca-app-pub-9316035916536420~1961894132",
+          "iosAppId": "ca-app-pub-9316035916536420~1961894132",
           "userTrackingUsageDescription": "Usamos dados para personalizar anúncios."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "eas": { "projectId": "SEU_EAS_PROJECT_ID" },
-      "supabaseUrl":            "https://mnqqmxizchcxwptnhsfm.supabase.co",
-      "supabaseAnonKey":        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXFteGl6Y2hjeHdwdG5oc2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTEyMTgsImV4cCI6MjA4OTEyNzIxOH0.G8hnal04gsQVhJd9vorHHKYsnYFtlz3ALtSks1By-rQ",
-      "adzunaAppId":            "7e179384",
-      "adzunaAppKey":           "3d838dfc1cc9ec16c0d4feff067fdd33",
-      "admobRewardedAndroid":   "ca-app-pub-9316035916536420/4923099397",
-      "admobRewardedIos":       "ca-app-pub-9316035916536420/4923099397",
+      "eas": {
+        "projectId": "SEU_EAS_PROJECT_ID"
+      },
+      "supabaseUrl": "https://mnqqmxizchcxwptnhsfm.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ucXFteGl6Y2hjeHdwdG5oc2ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTEyMTgsImV4cCI6MjA4OTEyNzIxOH0.G8hnal04gsQVhJd9vorHHKYsnYFtlz3ALtSks1By-rQ",
+      "adzunaAppId": "7e179384",
+      "adzunaAppKey": "3d838dfc1cc9ec16c0d4feff067fdd33",
+      "admobRewardedAndroid": "ca-app-pub-9316035916536420/4923099397",
+      "admobRewardedIos": "ca-app-pub-9316035916536420/4923099397",
       "admobInterstitialAndroid": "ca-app-pub-9316035916536420/3763763682",
-      "admobInterstitialIos":     "ca-app-pub-9316035916536420/3763763682"
+      "admobInterstitialIos": "ca-app-pub-9316035916536420/3763763682"
     }
   }
 }
