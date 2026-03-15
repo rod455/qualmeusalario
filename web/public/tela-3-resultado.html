@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Qual Meu Salário — Resultado</title>
+<title>Quanto Ganha! — Resultado</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; background:#f2f2f7; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
@@ -542,7 +542,7 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <button class="back-btn" onclick="window.location.href='tela-1a-cargo.html'">← Refazer análise</button>
-    <div class="logo-small">Qual Meu Salário</div>
+    <div class="logo-small">Quanto Ganha!</div>
   </div>
 
   <!-- HERO -->
@@ -914,7 +914,7 @@
       <div class="p-invite-title">Quanto seus amigos ganham?</div>
       <div class="p-invite-desc">Envie o link e veja se eles também estão abaixo do mercado. Todo mundo descobre junto.</div>
       <div class="p-invite-link-wrap">
-        <span class="p-invite-link" id="invite-link">qualmeusalario.com.br/i/marcos</span>
+        <span class="p-invite-link" id="invite-link">quantoganha.com.br/i/marcos</span>
         <button class="p-copy-btn" onclick="copyInvite()">Copiar</button>
       </div>
       <div class="p-invite-share-row">
@@ -1774,7 +1774,7 @@ function populatePerfil(){
       document.getElementById('perfil-email').textContent = sess.user?.email || '';
       const cta = document.getElementById('p-locked-cta');
       if(cta) cta.style.display = 'none';
-      document.getElementById('invite-link').textContent = 'qualmeusalario.com.br/i/' + name.toLowerCase().replace(/\s+/g,'-');
+      document.getElementById('invite-link').textContent = 'quantoganha.com.br/i/' + name.toLowerCase().replace(/\s+/g,'-');
     } catch(e){}
   }
 
@@ -1808,19 +1808,19 @@ function populatePerfil(){
 /* ── SHARE RESULT ── */
 function buildShareText(){
   const RR = JSON.parse(localStorage.getItem('qms_result') || 'null');
-  if(!RR) return 'Descubra quanto você vale no mercado → qualmeusalario.com.br';
+  if(!RR) return 'Descubra quanto você vale no mercado → quantoganha.com.br';
   const dir = RR.diff >= 0 ? 'acima' : 'abaixo';
-  return `Meu salário está ${Math.abs(RR.diff)}% ${dir} do mercado para ${RR.cargo?.split('(')[0]?.trim()} em ${RR.cidade?.nome || ''}. Calcula o seu → qualmeusalario.com.br`;
+  return `Meu salário está ${Math.abs(RR.diff)}% ${dir} do mercado para ${RR.cargo?.split('(')[0]?.trim()} em ${RR.cidade?.nome || ''}. Calcula o seu → quantoganha.com.br`;
 }
 function shareResult(channel){
   const text = buildShareText();
   if(channel === 'tiktok' || channel === 'instagram'){
-    if(navigator.share){ navigator.share({ title:'Qual Meu Salário', text, url:'https://qualmeusalario.com.br' }).catch(()=>{}); }
+    if(navigator.share){ navigator.share({ title:'Quanto Ganha!', text, url:'https://quantoganha.com.br' }).catch(()=>{}); }
     else { window.location.href = 'tela-4-share.html'; }
   } else if(channel === 'whatsapp'){
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
   } else if(channel === 'copiar'){
-    navigator.clipboard?.writeText('https://qualmeusalario.com.br').then(()=>alert('Link copiado!')).catch(()=>alert('Copie: qualmeusalario.com.br'));
+    navigator.clipboard?.writeText('https://quantoganha.com.br').then(()=>alert('Link copiado!')).catch(()=>alert('Copie: quantoganha.com.br'));
   }
 }
 
@@ -1845,7 +1845,7 @@ function inviteTelegram(){
   window.open('https://t.me/share/url?url=https://' + link + '&text=' + encodeURIComponent('Descobre quanto você vale no mercado! 🎯'), '_blank');
 }
 function inviteLinkedIn(){
-  window.open('https://www.linkedin.com/sharing/share-offsite/?url=https://qualmeusalario.com.br', '_blank');
+  window.open('https://www.linkedin.com/sharing/share-offsite/?url=https://quantoganha.com.br', '_blank');
 }
 
 function closeModal(){
