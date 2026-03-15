@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "name": "qualmeusalario",
+  "builds": [
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "X-XSS-Protection",       "value": "1; mode=block" },
+        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/tela-(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/inicio",
+      "destination": "/tela-1a-cargo.html",
+      "permanent": false
+    },
+    {
+      "source": "/resultado",
+      "destination": "/tela-3-resultado.html",
+      "permanent": false
+    }
+  ]
+}

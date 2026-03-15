@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Qual Meu Salário? — Descubra quanto você vale no mercado</title>
+<meta name="description" content="Compare seu salário com a média do mercado em segundos. Dados do CAGED 2024. 100% grátis.">
+<meta property="og:title"       content="Qual Meu Salário?">
+<meta property="og:description" content="Descubra se você está ganhando abaixo do mercado em segundos.">
+<meta property="og:image"       content="https://qualmeusalario.com.br/og-image.png">
+<meta property="og:url"         content="https://qualmeusalario.com.br">
+<meta name="twitter:card"       content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231D9E75'/><text y='24' x='5' font-size='22' font-weight='900' fill='white' font-family='system-ui'>$</text></svg>">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:#0d0d0d; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#fff; overflow-x:hidden; }
+
+  /* HERO */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:48px 24px 80px; text-align:center;
+    position:relative; overflow:hidden;
+  }
+
+  /* BG glow */
+  .hero::before {
+    content:''; position:absolute;
+    width:500px; height:500px; border-radius:50%;
+    background:radial-gradient(circle,rgba(29,158,117,0.18) 0%,transparent 70%);
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    pointer-events:none;
+  }
+
+  .logo-row {
+    display:flex; align-items:center; gap:12px; margin-bottom:40px;
+  }
+  .logo-icon {
+    width:48px; height:48px; background:#1D9E75; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:900; color:#fff;
+  }
+  .logo-name { font-size:20px; font-weight:800; color:#fff; letter-spacing:-0.4px; }
+
+  h1 {
+    font-size:clamp(36px,8vw,56px); font-weight:900; line-height:1.1;
+    letter-spacing:-1.5px; margin-bottom:16px; position:relative;
+  }
+  h1 em { color:#1D9E75; font-style:normal; }
+
+  .subtitle {
+    font-size:18px; color:rgba(255,255,255,0.5); line-height:1.5;
+    max-width:420px; margin:0 auto 40px;
+  }
+
+  /* SOCIAL PROOF */
+  .proof-row {
+    display:flex; align-items:center; gap:16px; margin-bottom:40px;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .proof-item { display:flex; align-items:center; gap:6px; font-size:13px; color:rgba(255,255,255,0.45); }
+  .proof-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.2); }
+
+  /* CTA */
+  .cta-main {
+    width:100%; max-width:340px; padding:18px 32px;
+    background:#1D9E75; color:#fff; border:none;
+    border-radius:16px; font-size:18px; font-weight:800;
+    cursor:pointer; font-family:inherit; letter-spacing:-0.3px;
+    transition:transform 0.1s, opacity 0.15s;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-bottom:14px;
+  }
+  .cta-main:active { transform:scale(0.98); opacity:0.9; }
+
+  .cta-hint { font-size:13px; color:rgba(255,255,255,0.3); }
+
+  /* STATS ROW */
+  .stats-row {
+    display:flex; gap:0; margin:56px auto 0; max-width:480px;
+    width:100%; border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px; overflow:hidden; background:rgba(255,255,255,0.03);
+  }
+  .stat-item { flex:1; padding:20px 12px; text-align:center; border-right:1px solid rgba(255,255,255,0.08); }
+  .stat-item:last-child { border-right:none; }
+  .stat-num { font-size:26px; font-weight:900; color:#1D9E75; letter-spacing:-0.5px; }
+  .stat-label { font-size:11px; color:rgba(255,255,255,0.35); margin-top:3px; font-weight:500; }
+
+  /* PREVIEW CARD */
+  .preview-section {
+    padding:0 24px 80px; max-width:480px; margin:0 auto; width:100%;
+  }
+  .section-label {
+    font-size:11px; font-weight:700; color:rgba(255,255,255,0.3);
+    text-transform:uppercase; letter-spacing:0.8px; text-align:center; margin-bottom:24px;
+  }
+  .preview-card {
+    background:#1a1a1a; border:1px solid rgba(255,255,255,0.08);
+    border-radius:20px; overflow:hidden;
+  }
+  .pc-dark { background:#0a0a0a; padding:24px 22px 20px; }
+  .pc-app-row { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .pc-app-icon { width:24px; height:24px; background:#1D9E75; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .pc-app-name { font-size:12px; color:rgba(255,255,255,0.4); font-weight:500; }
+  .pc-pre { font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:4px; }
+  .pc-big { font-size:56px; font-weight:900; color:#E24B4A; letter-spacing:-2px; line-height:1; }
+  .pc-desc { font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px; }
+  .pc-light { padding:16px 22px; }
+  .pc-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:0.5px solid rgba(255,255,255,0.06); font-size:13px; }
+  .pc-row:last-child { border-bottom:none; }
+  .pc-label { color:rgba(255,255,255,0.4); }
+  .pc-val { font-weight:700; color:rgba(255,255,255,0.8); }
+  .pc-val.red { color:#E24B4A; } .pc-val.green { color:#1D9E75; }
+
+  /* HOW IT WORKS */
+  .how-section { padding:0 24px 80px; max-width:480px; margin:0 auto; width:100%; }
+  .steps { display:flex; flex-direction:column; gap:16px; }
+  .step-card {
+    background:#1a1a1a; border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:18px; display:flex; align-items:flex-start; gap:16px;
+  }
+  .step-num {
+    width:36px; height:36px; border-radius:10px; background:rgba(29,158,117,0.15);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:900; color:#1D9E75; flex-shrink:0;
+  }
+  .step-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:3px; }
+  .step-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.4; }
+
+  /* FOOTER */
+  .footer {
+    padding:32px 24px 48px; text-align:center;
+    border-top:1px solid rgba(255,255,255,0.06);
+    font-size:13px; color:rgba(255,255,255,0.25);
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .footer a { color:rgba(255,255,255,0.35); text-decoration:none; }
+  .footer a:hover { color:#1D9E75; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo-row">
+    <div class="logo-icon">$</div>
+    <div class="logo-name">Qual Meu Salário?</div>
+  </div>
+
+  <h1>Você está ganhando<br><em>o que merece?</em></h1>
+  <p class="subtitle">Compare seu salário com a média do mercado em segundos. Dados reais do CAGED 2024. 100% grátis.</p>
+
+  <div class="proof-row">
+    <span class="proof-item">✓ Sem cadastro necessário</span>
+    <span class="proof-dot"></span>
+    <span class="proof-item">✓ Dados do CAGED 2024</span>
+    <span class="proof-dot"></span>
+    <span class="proof-item">✓ 90+ cargos</span>
+  </div>
+
+  <button class="cta-main" onclick="window.location.href='tela-1a-cargo.html'">
+    Descobrir meu salário →
+  </button>
+  <div class="cta-hint">Leva menos de 1 minuto</div>
+
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num">2.4M</div><div class="stat-label">registros CAGED</div></div>
+    <div class="stat-item"><div class="stat-num">90+</div><div class="stat-label">cargos cobertos</div></div>
+    <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">cidades no Brasil</div></div>
+  </div>
+</div>
+
+<div class="preview-section">
+  <div class="section-label">Exemplo de resultado</div>
+  <div class="preview-card">
+    <div class="pc-dark">
+      <div class="pc-app-row">
+        <div class="pc-app-icon">$</div>
+        <div class="pc-app-name">qualmeusalario.com.br</div>
+      </div>
+      <div class="pc-pre">Meu salário está</div>
+      <div class="pc-big">−18%</div>
+      <div class="pc-desc">abaixo do mercado para<br><strong style="color:rgba(255,255,255,0.7)">Dev Pleno em SP · Remoto</strong></div>
+    </div>
+    <div class="pc-light">
+      <div class="pc-row"><span class="pc-label">Meu salário</span><span class="pc-val">R$ 8.200</span></div>
+      <div class="pc-row"><span class="pc-label">Média do mercado</span><span class="pc-val green">R$ 10.000</span></div>
+      <div class="pc-row"><span class="pc-label">Deixando na mesa / mês</span><span class="pc-val red">R$ 1.800</span></div>
+      <div class="pc-row"><span class="pc-label">Perda acumulada / ano</span><span class="pc-val red">R$ 21.600</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="how-section">
+  <div class="section-label">Como funciona</div>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div><div class="step-title">Informe seu cargo e cidade</div><div class="step-desc">90+ cargos cadastrados. Você também pode digitar qualquer cargo livremente.</div></div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div><div class="step-title">Digite seu salário + benefícios</div><div class="step-desc">Inclua comissão, PLR, VR/VA e outros benefícios para uma comparação real.</div></div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div><div class="step-title">Veja o resultado em segundos</div><div class="step-desc">Comparamos com 2.4M registros do CAGED 2024 e mostramos o gap exato.</div></div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div><div class="step-title">Compartilhe ou salve o resultado</div><div class="step-desc">Gere um card para o TikTok ou crie uma conta para monitorar mensalmente.</div></div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div>
+    <a href="tela-1a-cargo.html">Começar análise</a> ·
+    <a href="#">Termos de Uso</a> ·
+    <a href="#">Privacidade</a>
+  </div>
+  <div>© 2025 Qual Meu Salário? · qualmeusalario.com.br</div>
+  <div>Dados baseados no CAGED 2024 · Uso educacional</div>
+</footer>
+
+</body>
+</html>
