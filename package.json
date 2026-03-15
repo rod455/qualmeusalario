@@ -1,0 +1,20 @@
+{
+  "name": "qualmeusalario",
+  "version": "1.0.0",
+  "description": "Qual Meu Salário? — Compare seu salário com o mercado",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve public -p 3000",
+    "build": "echo 'Static site — no build step needed'",
+    "preview": "npx serve public -p 4000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["salário", "mercado", "carreira", "brasil"],
+  "author": "Qual Meu Salário",
+  "license": "UNLICENSED"
+}
