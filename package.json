@@ -1,20 +1,5 @@
 {
-  "name": "qualmeusalario",
+  "name": "qualmeusalario-monorepo",
   "version": "1.0.0",
-  "description": "Qual Meu Salario - Compare seu salario com o mercado",
-  "private": true,
-  "scripts": {
-    "dev": "npx serve . -p 3000",
-    "build": "echo \"Static site\"",
-    "preview": "npx serve . -p 4000"
-  },
-  "devDependencies": {
-    "serve": "^14.2.1"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "keywords": ["salario", "mercado", "carreira", "brasil"],
-  "author": "Qual Meu Salario",
-  "license": "UNLICENSED"
+  "private": true
 }
