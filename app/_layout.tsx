@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { initAppOpenAd } from '../lib/appOpenAd';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -11,6 +12,9 @@ export default function RootLayout() {
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    // 🆕 Inicializa o App Open Ad (interstitial de abertura)
+    initAppOpenAd();
+
     // Pulso suave enquanto carrega
     const pulse = Animated.loop(
       Animated.sequence([
