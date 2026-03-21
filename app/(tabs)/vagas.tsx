@@ -2,21 +2,35 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 export default function VagasScreen() {
+  const { showAdThenDo } = useInterstitial(['vaga emprego', 'salario', 'carreira', 'trabalho remoto']);
+
+  function handleCTA() {
+    showAdThenDo(() => {
+      router.push('/(tabs)/perfil');
+    });
+  }
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
+
+      {/* Banner ad no topo */}
+      <AdBanner />
+
       <View style={s.container}>
-        <View style={s.iconWrap}><Text style={s.icon}>ðŸ”’</Text></View>
-        <Text style={s.title}>Veja vagas compatÃ­veis</Text>
-        <Text style={s.sub}>Encontre oportunidades com salÃ¡rio acima da sua anÃ¡lise de mercado, filtradas para o seu cargo.</Text>
+        <View style={s.iconWrap}><Text style={s.icon}>💼</Text></View>
+        <Text style={s.title}>Veja vagas compatíveis</Text>
+        <Text style={s.sub}>Encontre oportunidades com salário acima da sua análise de mercado, filtradas para o seu cargo.</Text>
         <View style={s.perks}>
           {[
-            { icon:'ðŸ’¼', text:'Vagas filtradas para seu cargo' },
-            { icon:'ðŸ’°', text:'SalÃ¡rios acima do seu atual' },
-            { icon:'ðŸ ', text:'Filtro por modelo de trabalho' },
-            { icon:'ðŸ””', text:'Alertas de novas oportunidades' },
+            { icon:'💼', text:'Vagas filtradas para seu cargo' },
+            { icon:'💰', text:'Salários acima do seu atual' },
+            { icon:'🏠', text:'Filtro por modelo de trabalho' },
+            { icon:'🔔', text:'Alertas de novas oportunidades' },
           ].map(p => (
             <View key={p.text} style={s.perk}>
               <View style={s.perkIcon}><Text>{p.icon}</Text></View>
@@ -24,10 +38,10 @@ export default function VagasScreen() {
             </View>
           ))}
         </View>
-        <TouchableOpacity style={s.cta} onPress={() => router.push('/(tabs)/perfil')}>
-          <Text style={s.ctaTxt}>Criar conta grÃ¡tis â†’</Text>
+        <TouchableOpacity style={s.cta} onPress={handleCTA}>
+          <Text style={s.ctaTxt}>Criar conta grátis →</Text>
         </TouchableOpacity>
-        <Text style={s.hint}>100% gratuito â€¢ Sem cartÃ£o de crÃ©dito</Text>
+        <Text style={s.hint}>100% gratuito • Sem cartão de crédito</Text>
       </View>
     </SafeAreaView>
   );

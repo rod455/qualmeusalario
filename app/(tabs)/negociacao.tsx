@@ -2,11 +2,25 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 export default function NegociacaoScreen() {
+  const { showAdThenDo } = useInterstitial(['negociacao salarial', 'aumento salario', 'carreira', 'curso online']);
+
+  function handleCTA() {
+    // 🆕 Interstitial antes de navegar para cadastro
+    showAdThenDo(() => {
+      router.push('/cadastro');
+    });
+  }
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
+
+      {/* 🆕 Banner ad no topo */}
+      <AdBanner />
       <View style={s.container}>
         <View style={s.iconWrap}><Text style={s.icon}>🔒</Text></View>
         <Text style={s.title}>Treine sua negociação</Text>
@@ -24,7 +38,7 @@ export default function NegociacaoScreen() {
             </View>
           ))}
         </View>
-        <TouchableOpacity style={s.cta} onPress={() => router.push('/cadastro')}>
+        <TouchableOpacity style={s.cta} onPress={handleCTA}>
           <Text style={s.ctaTxt}>Criar conta grátis →</Text>
         </TouchableOpacity>
         <Text style={s.hint}>100% gratuito • Sem cartão de crédito</Text>

@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { fmtBRL } from '../../lib/salary';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
 
 function Bar({ label, myVal, mktVal, max }: { label:string; myVal:number; mktVal:number; max:number }) {
   const myW  = useRef(new Animated.Value(0)).current;
@@ -103,6 +104,9 @@ export default function ResultadoScreen() {
           <Text style={s.loginBtnTxt}>Entrar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 🆕 Banner ad */}
+      <AdBanner />
 
       <ScrollView showsVerticalScrollIndicator={false}>
 
