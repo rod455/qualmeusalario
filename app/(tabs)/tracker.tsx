@@ -2,11 +2,15 @@ import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
 
 export default function TrackerScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
+
+      {/* 🆕 Banner ad no topo */}
+      <AdBanner />
       <View style={s.container}>
         <View style={s.iconWrap}><Text style={s.icon}>🔒</Text></View>
         <Text style={s.title}>Acompanhe sua evolução</Text>
