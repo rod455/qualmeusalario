@@ -84,7 +84,11 @@
       "admobRewardedAndroid": "ca-app-pub-9316035916536420/4923099397",
       "admobRewardedIos": "ca-app-pub-9316035916536420/4923099397",
       "admobInterstitialAndroid": "ca-app-pub-9316035916536420/3763763682",
-      "admobInterstitialIos": "ca-app-pub-9316035916536420/3763763682"
+      "admobInterstitialIos": "ca-app-pub-9316035916536420/3763763682",
+      "admobBannerAndroid": "ca-app-pub-9316035916536420/1537239371",
+      "admobBannerIos": "ca-app-pub-9316035916536420/1537239371",
+      "admobAppOpenAndroid": "ca-app-pub-9316035916536420/7632873852",
+      "admobAppOpenIos": "ca-app-pub-9316035916536420/7632873852"
     }
   }
 }
