@@ -11,10 +11,15 @@ export const ADMOB = {
   APP_ID:               'ca-app-pub-9316035916536420~1961894132',
   REWARDED_ANDROID:     'ca-app-pub-9316035916536420/4923099397',
   INTERSTITIAL_ANDROID: 'ca-app-pub-9316035916536420/3763763682',
+  BANNER_ANDROID:       'ca-app-pub-9316035916536420/1537239371',   // 🆕 Banner adaptativo
+  APP_OPEN_ANDROID:     'ca-app-pub-9316035916536420/7632873852',   // 🆕 App Open (interstitial)
   REWARDED_IOS:         'ca-app-pub-9316035916536420/4923099397',
   INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/3763763682',
+  BANNER_IOS:           'ca-app-pub-9316035916536420/1537239371',   // 🆕 Mesmo ID por ora
+  APP_OPEN_IOS:         'ca-app-pub-9316035916536420/7632873852',   // 🆕 Mesmo ID por ora
   TEST_REWARDED:        'ca-app-pub-3940256099942544/5224354917',
   TEST_INTERSTITIAL:    'ca-app-pub-3940256099942544/1033173712',
+  TEST_BANNER:          'ca-app-pub-3940256099942544/6300978111',   // 🆕 Banner de teste
 };
 
 // ─── Brand Colors ─────────────────────────────────────────────────────────────
