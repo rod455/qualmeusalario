@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Slot, router } from 'expo-router';
+import { Slot, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { initAppOpenAd } from '../lib/appOpenAd';
 import {
   setupPushNotifications,
   addNotificationListeners,
 } from '../lib/notifications';
+import { logScreenView, logPushOpened } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
@@ -15,29 +16,37 @@ export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
   const scaleAnim   = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
+  const pathname    = usePathname();
+
+  // 🆕 Analytics — loga cada mudança de tela
+  useEffect(() => {
+    if (pathname) {
+      logScreenView(pathname);
+    }
+  }, [pathname]);
 
   useEffect(() => {
-    // 🆕 Inicializa o App Open Ad (interstitial de abertura)
+    // Inicializa o App Open Ad (interstitial de abertura)
     initAppOpenAd();
 
-    // 🆕 Push Notifications — registra se já logado
+    // Push Notifications — registra se já logado
     initPushIfLoggedIn();
 
-    // 🆕 Listeners de notificação (foreground + tap)
+    // Listeners de notificação (foreground + tap)
     const cleanupListeners = addNotificationListeners(
-      // onReceive (foreground) — apenas loga
+      // onReceive (foreground)
       (notification) => {
         console.log('Notificação recebida:', notification.request.content.title);
       },
-      // onTap — navega conforme dados da notificação
+      // onTap — navega + loga no Analytics
       (response) => {
         const data = response.notification.request.content.data;
-        if (data?.screen) {
-          // Ex: push com { screen: '/(tabs)/vagas' } navega para vagas
+        const targetScreen = data?.screen as string | undefined;
+        logPushOpened(targetScreen);
+        if (targetScreen) {
           try {
-            router.push(data.screen as string);
+            router.push(targetScreen);
           } catch {
-            // Se a rota não existir, vai pro resultado
             router.push('/(tabs)/resultado');
           }
         }
@@ -89,10 +98,6 @@ export default function RootLayout() {
   );
 }
 
-/**
- * Se o usuário já estiver logado, registra push automaticamente.
- * Caso contrário, o push será registrado após login/cadastro.
- */
 async function initPushIfLoggedIn() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
