@@ -68,6 +68,8 @@
           "userTrackingUsageDescription": "Usamos dados para personalizar anúncios."
         }
       ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       "expo-asset",
       "expo-build-properties"
     ],
