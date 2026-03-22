@@ -1,29 +1,28 @@
+// app/(onboarding)/reward.tsx
+// Tela de loading + rewarded ad — exibe automaticamente ao entrar
+// Fix: usa ADMOB centralizado + cleanup de listeners
+
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   RewardedAd,
   RewardedAdEventType,
+  AdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
-import Constants from 'expo-constants';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { computeSalaryResult, fmtBRL } from '../../lib/salary';
-import { COLORS } from '../../lib/constants';
+import { COLORS, ADMOB } from '../../lib/constants';
 import { saveAnalysis } from '../../lib/supabase';
 
 const IS_DEV = __DEV__;
 const AD_UNIT_ID = IS_DEV
   ? TestIds.REWARDED
-  : (Constants.expoConfig?.extra?.admobRewardedAndroid as string);
-
-let rewarded: ReturnType<typeof RewardedAd.createForAdRequest> | null = null;
-try {
-  rewarded = RewardedAd.createForAdRequest(AD_UNIT_ID, {
-    requestNonPersonalizedAdsOnly: false,
-  });
-} catch { rewarded = null; }
+  : Platform.OS === 'ios'
+    ? ADMOB.REWARDED_IOS
+    : ADMOB.REWARDED_ANDROID;
 
 const STEPS = [
   { label: 'Buscando dados do CAGED 2024...',        duration: 5000 },
@@ -42,6 +41,8 @@ export default function RewardScreen() {
   const stepAnim      = useRef(new Animated.Value(1)).current;
   const fallbackStarted = useRef(false);
   const intervalRef     = useRef<ReturnType<typeof setInterval>>();
+  const listenersRef    = useRef<(() => void)[]>([]);
+  const adRef           = useRef<ReturnType<typeof RewardedAd.createForAdRequest> | null>(null);
 
   const result = computeSalaryResult({
     cargo:     store.cargo,
@@ -67,18 +68,48 @@ export default function RewardScreen() {
 
   useEffect(() => {
     startCountdown();
-    tryLoadAd();
+    loadAndShowAd();
+
+    return () => {
+      // Cleanup listeners ao desmontar
+      clearInterval(intervalRef.current);
+      listenersRef.current.forEach(fn => fn());
+      listenersRef.current = [];
+    };
   }, []);
 
-  function tryLoadAd() {
-    if (!rewarded) return;
+  function loadAndShowAd() {
     try {
-      rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
-        try { rewarded?.show(); } catch {}
+      const ad = RewardedAd.createForAdRequest(AD_UNIT_ID, {
+        keywords: ['salario', 'emprego', 'carreira', 'vaga emprego', 'curso online'],
       });
-      rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, onAdDone);
-      rewarded.load();
-    } catch {}
+      adRef.current = ad;
+
+      const u1 = ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
+        // Ad carregou — exibe imediatamente (sem botão)
+        try { ad.show(); } catch {}
+      });
+
+      const u2 = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+        // Reward concedido — pode navegar
+        onAdDone();
+      });
+
+      const u3 = ad.addAdEventListener(AdEventType.CLOSED, () => {
+        // Usuário fechou o ad — navega mesmo assim
+        onAdDone();
+      });
+
+      const u4 = ad.addAdEventListener(AdEventType.ERROR, (error) => {
+        console.log('Rewarded ad error:', error);
+        // Em caso de erro, countdown fallback continua rodando
+      });
+
+      listenersRef.current = [u1, u2, u3, u4];
+      ad.load();
+    } catch (e) {
+      console.log('Failed to create rewarded ad:', e);
+    }
   }
 
   function startCountdown() {
@@ -112,6 +143,7 @@ export default function RewardScreen() {
     clearInterval(intervalRef.current);
     router.replace('/(tabs)/resultado');
   }
+
   const ab = result.diff >= 0;
   const pct = Math.round(((30 - secsLeft) / 30) * 100);
 
@@ -155,7 +187,7 @@ export default function RewardScreen() {
           </View>
         </View>
 
-        {/* Preview sempre bloqueado */}
+        {/* Preview bloqueado */}
         <View style={s.previewCard}>
           <Text style={s.previewEye}>SEU RESULTADO</Text>
           <View style={s.previewPctRow}>
@@ -174,36 +206,44 @@ export default function RewardScreen() {
             <View style={s.previewValBlocked}><Text style={s.previewBlockSmall}>••••</Text></View>
           </View>
           <View style={s.lockRow}>
-            <Text style={s.lockTxt}>🔒 Resultado liberado ao concluir</Text>
+            <Text style={s.lockTxt}>🔒 Resultado liberado ao final</Text>
           </View>
         </View>
       </View>
 
+      {/* CTA fallback — caso o ad não carregue, mostra botão após 15s */}
+      {secsLeft <= 15 && (
+        <View style={s.ctaWrap}>
+          <TouchableOpacity style={s.ctaBtn} onPress={onAdDone}>
+            <Text style={s.ctaBtnTxt}>Ver resultado agora →</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
   safe:           { flex:1, backgroundColor:COLORS.dark },
-  topbar:         { flexDirection:'row', alignItems:'center', paddingHorizontal:20, paddingTop:14, paddingBottom:10 },
+  topbar:         { flexDirection:'row', justifyContent:'center', alignItems:'center', paddingHorizontal:20, paddingTop:14, paddingBottom:10 },
   logoRow:        { flexDirection:'row', alignItems:'center', gap:8 },
-  logoImg:        { width:30, height:30, borderRadius:8 },
-  logoName:       { fontSize:14, fontWeight:'700', color:'rgba(255,255,255,0.8)' },
-  body:           { flex:1, paddingHorizontal:20, paddingTop:8, gap:14 },
-  calcIconWrap:   { width:52, height:52, borderRadius:14, backgroundColor:'rgba(245,168,32,0.12)', borderWidth:1, borderColor:'rgba(245,168,32,0.2)', alignItems:'center', justifyContent:'center' },
-  calcIcon:       { fontSize:24 },
-  title:          { fontSize:26, fontWeight:'900', color:'#fff', letterSpacing:-0.7, lineHeight:32 },
-  subtitle:       { fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:-6 },
-  stepCard:       { flexDirection:'row', alignItems:'center', gap:10, backgroundColor:'rgba(255,255,255,0.05)', borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:12, paddingHorizontal:14, paddingVertical:11 },
-  stepDot:        { width:8, height:8, borderRadius:4, backgroundColor:COLORS.primary, flexShrink:0 },
-  stepTxt:        { fontSize:13, color:'rgba(255,255,255,0.6)', flex:1 },
-  progressWrap:   { gap:7 },
-  progressBg:     { height:5, backgroundColor:'rgba(255,255,255,0.07)', borderRadius:3, overflow:'hidden' },
-  progressFill:   { height:'100%', backgroundColor:COLORS.primary, borderRadius:3 },
-  progressLabels: { flexDirection:'row', justifyContent:'space-between' },
-  progressPct:    { fontSize:12, color:'rgba(255,255,255,0.35)' },
+  logoImg:        { width:28, height:28, borderRadius:7 },
+  logoName:       { fontSize:14, fontWeight:'700', color:'#fff' },
+  body:           { flex:1, paddingHorizontal:24, justifyContent:'center', alignItems:'center' },
+  calcIconWrap:   { width:64, height:64, borderRadius:18, backgroundColor:'rgba(245,168,32,0.15)', alignItems:'center', justifyContent:'center', marginBottom:20 },
+  calcIcon:       { fontSize:28 },
+  title:          { fontSize:28, fontWeight:'900', color:'#fff', textAlign:'center', letterSpacing:-0.5, lineHeight:34, marginBottom:8 },
+  subtitle:       { fontSize:14, color:'rgba(255,255,255,0.4)', textAlign:'center', marginBottom:24 },
+  stepCard:       { flexDirection:'row', alignItems:'center', gap:10, backgroundColor:COLORS.surface, borderRadius:12, paddingHorizontal:16, paddingVertical:10, marginBottom:20, width:'100%' },
+  stepDot:        { width:8, height:8, borderRadius:4, backgroundColor:COLORS.primary },
+  stepTxt:        { fontSize:13, color:'rgba(255,255,255,0.55)', fontWeight:'600', flex:1 },
+  progressWrap:   { width:'100%', marginBottom:20 },
+  progressBg:     { height:6, backgroundColor:'rgba(255,255,255,0.08)', borderRadius:3 },
+  progressFill:   { height:6, backgroundColor:COLORS.primary, borderRadius:3 },
+  progressLabels: { flexDirection:'row', justifyContent:'space-between', marginTop:8 },
+  progressPct:    { fontSize:12, fontWeight:'600', color:'rgba(255,255,255,0.35)' },
   progressSecs:   { fontSize:12, fontWeight:'700', color:COLORS.primary },
-  previewCard:    { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:20, padding:16 },
+  previewCard:    { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:20, padding:16, width:'100%' },
   previewEye:     { fontSize:10, fontWeight:'700', color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 },
   previewPctRow:  { marginBottom:6 },
   previewPct:     { fontSize:48, fontWeight:'900', letterSpacing:-1.5, lineHeight:52 },

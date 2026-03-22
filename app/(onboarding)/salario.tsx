@@ -1,3 +1,7 @@
+// app/(onboarding)/salario.tsx
+// Tela 3 do onboarding — input de salário
+// CTA agora vai direto para reward (sem "Ver resultado")
+
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, StatusBar, Image,
@@ -6,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
 
 type ExtraKey = 'com' | 'plr' | 'bon' | 'vr' | 'out';
 
@@ -43,6 +48,7 @@ export default function SalarioScreen() {
 
   const goNext = () => {
     setExtras({ com:getNum('com'), plr:getNum('plr'), bon:getNum('bon'), vr:getNum('vr'), out:getNum('out') });
+    // Vai direto para tela de reward (ad + countdown)
     router.push('/(onboarding)/reward');
   };
 
@@ -69,7 +75,7 @@ export default function SalarioScreen() {
           <Text style={s.title} numberOfLines={1} adjustsFontSizeToFit>Qual é o seu salário atual?</Text>
           <Text style={s.sub}>Seus dados são 100% anônimos.</Text>
 
-          {/* Input salário — compacto */}
+          {/* Input salário */}
           <Text style={s.label}>Salário fixo mensal</Text>
           <View style={s.salRow}>
             <Text style={s.salPrefix}>R$</Text>
@@ -138,16 +144,19 @@ export default function SalarioScreen() {
         </View>
       </ScrollView>
 
-      {/* CTA */}
+      {/* 🆕 Banner ad no rodapé do onboarding */}
+      <AdBanner />
+
+      {/* CTA — vai direto para reward */}
       <View style={s.ctaWrap}>
         <TouchableOpacity
           style={[s.cta, salario <= 0 && s.ctaDisabled]}
           onPress={goNext}
           disabled={salario <= 0}
         >
-          <Text style={s.ctaTxt}>🔍  Ver meu resultado</Text>
+          <Text style={s.ctaTxt}>📊  Calcular meu resultado</Text>
         </TouchableOpacity>
-        <Text style={s.hint}>Assista um breve anúncio para liberar o resultado</Text>
+        <Text style={s.hint}>Leva menos de 30 segundos</Text>
       </View>
     </SafeAreaView>
   );
@@ -171,13 +180,10 @@ const s = StyleSheet.create({
   title:         { fontSize:26, fontWeight:'800', color:'#fff', letterSpacing:-0.5, marginBottom:5 },
   sub:           { fontSize:13, color:'rgba(255,255,255,0.4)', marginBottom:20 },
   label:         { fontSize:11, fontWeight:'700', color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:0.7, marginBottom:8 },
-
-  // Input compacto — menor que antes
   salRow:        { flexDirection:'row', alignItems:'center', backgroundColor:COLORS.surface, borderWidth:1.5, borderColor:'rgba(255,255,255,0.10)', borderRadius:14, paddingHorizontal:16, paddingVertical:12, gap:8 },
   salPrefix:     { fontSize:16, fontWeight:'800', color:'rgba(255,255,255,0.4)' },
   salInput:      { flex:1, fontSize:24, fontWeight:'800', color:'#fff', padding:0 },
   salAno:        { fontSize:11, color:'rgba(255,255,255,0.3)', flexShrink:0 },
-
   divider:       { flexDirection:'row', alignItems:'center', gap:10, marginVertical:18 },
   divLine:       { flex:1, height:1, backgroundColor:'rgba(255,255,255,0.07)' },
   divTxt:        { fontSize:10, fontWeight:'700', color:'rgba(255,255,255,0.25)', textTransform:'uppercase', letterSpacing:0.7 },
