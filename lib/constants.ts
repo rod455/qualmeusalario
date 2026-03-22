@@ -10,16 +10,18 @@ export const ADZUNA_APP_KEY = '3d838dfc1cc9ec16c0d4feff067fdd33';
 export const ADMOB = {
   APP_ID:               'ca-app-pub-9316035916536420~1961894132',
   REWARDED_ANDROID:     'ca-app-pub-9316035916536420/4923099397',
+  REWARDED_VAGAS_ANDROID: 'ca-app-pub-9316035916536420/3500957073',   // 🆕 Rewarded dedicado para vagas
   INTERSTITIAL_ANDROID: 'ca-app-pub-9316035916536420/3763763682',
-  BANNER_ANDROID:       'ca-app-pub-9316035916536420/1537239371',   // 🆕 Banner adaptativo
-  APP_OPEN_ANDROID:     'ca-app-pub-9316035916536420/7632873852',   // 🆕 App Open (interstitial)
+  BANNER_ANDROID:       'ca-app-pub-9316035916536420/1537239371',
+  APP_OPEN_ANDROID:     'ca-app-pub-9316035916536420/7632873852',
   REWARDED_IOS:         'ca-app-pub-9316035916536420/4923099397',
+  REWARDED_VAGAS_IOS:   'ca-app-pub-9316035916536420/3500957073',     // 🆕 Mesmo ID por ora
   INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/3763763682',
-  BANNER_IOS:           'ca-app-pub-9316035916536420/1537239371',   // 🆕 Mesmo ID por ora
-  APP_OPEN_IOS:         'ca-app-pub-9316035916536420/7632873852',   // 🆕 Mesmo ID por ora
+  BANNER_IOS:           'ca-app-pub-9316035916536420/1537239371',
+  APP_OPEN_IOS:         'ca-app-pub-9316035916536420/7632873852',
   TEST_REWARDED:        'ca-app-pub-3940256099942544/5224354917',
   TEST_INTERSTITIAL:    'ca-app-pub-3940256099942544/1033173712',
-  TEST_BANNER:          'ca-app-pub-3940256099942544/6300978111',   // 🆕 Banner de teste
+  TEST_BANNER:          'ca-app-pub-3940256099942544/6300978111',
 };
 
 // ─── Brand Colors ─────────────────────────────────────────────────────────────
