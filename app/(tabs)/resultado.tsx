@@ -95,7 +95,7 @@ export default function ResultadoScreen() {
     showAdThenDo(() => { reset(); router.replace('/(onboarding)/cargo'); });
   };
 
-  // 🆕 Ver vagas com interstitial
+  // Botão "VER VAGAS" com interstitial → aba Vagas
   const handleVerVagas = () => {
     showAdThenDo(() => { router.push('/(tabs)/vagas'); });
   };
@@ -164,7 +164,7 @@ export default function ResultadoScreen() {
 
         {/* CTAs */}
         <View style={s.ctaSection}>
-          {/* 🆕 Botão VER VAGAS em destaque */}
+          {/* Botão VER VAGAS em destaque */}
           <TouchableOpacity style={s.ctaVagas} onPress={handleVerVagas}>
             <Text style={s.ctaVagasTxt}>💼  VER VAGAS MELHORES QUE A MINHA</Text>
           </TouchableOpacity>
@@ -232,7 +232,7 @@ const s = StyleSheet.create({
   gapPer:       { fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:2 },
   gapDiv:       { width:1, height:32, backgroundColor:'rgba(255,255,255,0.08)' },
   ctaSection:   { paddingHorizontal:20, gap:12 },
-  // 🆕 Botão "Ver Vagas" em destaque
+  // Botão "Ver Vagas" em destaque
   ctaVagas:     { backgroundColor:'rgba(23,200,232,0.12)', borderWidth:1.5, borderColor:'rgba(23,200,232,0.3)', borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },
   ctaVagasTxt:  { color:COLORS.secondary, fontSize:14, fontWeight:'900', letterSpacing:0.3 },
   ctaShare:     { backgroundColor:COLORS.primary, borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },

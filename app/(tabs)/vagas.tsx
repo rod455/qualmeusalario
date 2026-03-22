@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity,
-  FlatList, Linking, ActivityIndicator, Platform,
+  FlatList, Linking, ActivityIndicator, Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, ADZUNA_APP_ID, ADZUNA_APP_KEY, ADMOB } from '../../lib/constants';
@@ -10,6 +10,7 @@ import { useOnboardingStore } from '../../store/useOnboardingStore';
 import {
   RewardedAd,
   RewardedAdEventType,
+  AdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
 
@@ -35,9 +36,10 @@ export default function VagasScreen() {
   const [vagas, setVagas]           = useState<Vaga[]>([]);
   const [loading, setLoading]       = useState(true);
   const [unlocked, setUnlocked]     = useState<Set<string>>(new Set());
-  const [pendingId, setPendingId]   = useState<string | null>(null);
-  const rewardedRef = useRef<ReturnType<typeof RewardedAd.createForAdRequest> | null>(null);
   const [adReady, setAdReady]       = useState(false);
+  const [adLoading, setAdLoading]   = useState(false);
+  const pendingIdRef                = useRef<string | null>(null);
+  const adRef                       = useRef<ReturnType<typeof RewardedAd.createForAdRequest> | null>(null);
 
   // Carregar vagas da Adzuna
   useEffect(() => {
@@ -46,41 +48,61 @@ export default function VagasScreen() {
 
   // Preparar rewarded ad
   useEffect(() => {
-    loadRewardedAd();
+    createAndLoadAd();
   }, []);
 
-  function loadRewardedAd() {
+  function createAndLoadAd() {
     try {
+      // Limpar ad anterior
+      adRef.current = null;
+      setAdReady(false);
+
       const ad = RewardedAd.createForAdRequest(REWARDED_ID, {
         keywords: ['vaga emprego', 'salario', 'carreira', 'trabalho remoto'],
       });
-      rewardedRef.current = ad;
+      adRef.current = ad;
 
       const unsubLoaded = ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
         setAdReady(true);
+        setAdLoading(false);
       });
 
       const unsubEarned = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
         // Destravar a vaga pendente
-        if (pendingId) {
-          setUnlocked(prev => new Set(prev).add(pendingId));
-          setPendingId(null);
+        if (pendingIdRef.current) {
+          setUnlocked(prev => new Set(prev).add(pendingIdRef.current!));
+          pendingIdRef.current = null;
         }
-        // Recarregar para próximo uso
-        setAdReady(false);
-        setTimeout(() => {
-          try { rewardedRef.current?.load(); } catch {}
-        }, 1000);
       });
 
+      const unsubClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+        // Recarregar ad para próximo uso
+        setAdReady(false);
+        setTimeout(() => createAndLoadAd(), 500);
+      });
+
+      const unsubError = ad.addAdEventListener(AdEventType.ERROR, (error) => {
+        console.log('Rewarded ad error:', error);
+        setAdReady(false);
+        setAdLoading(false);
+        // Tentar recarregar após 5s
+        setTimeout(() => {
+          try { ad.load(); } catch {}
+        }, 5000);
+      });
+
+      setAdLoading(true);
       ad.load();
 
       return () => {
         unsubLoaded();
         unsubEarned();
+        unsubClosed();
+        unsubError();
       };
-    } catch {
-      // Se não conseguir criar o ad, tudo funciona sem
+    } catch (e) {
+      console.log('Failed to create rewarded ad:', e);
+      setAdLoading(false);
     }
   }
 
@@ -89,22 +111,40 @@ export default function VagasScreen() {
     try {
       const cargo = result?.cargo?.split('(')[0]?.trim() ?? 'desenvolvedor';
       const query = encodeURIComponent(cargo);
-      const url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=15&what=${query}&content-type=application/json`;
+      // salary_min=1 força a Adzuna a retornar apenas vagas com salário informado
+      const url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=20&what=${query}&salary_min=1&sort_by=salary&content-type=application/json`;
 
       const res = await fetch(url);
       const data = await res.json();
 
-      if (data.results) {
+      if (data.results && data.results.length > 0) {
         const mapped: Vaga[] = data.results.map((r: any, i: number) => ({
           id: r.id?.toString() ?? `vaga-${i}`,
           title: r.title ?? 'Vaga sem título',
           company: r.company?.display_name ?? 'Empresa confidencial',
           location: r.location?.display_name ?? 'Brasil',
-          salary_min: r.salary_min,
-          salary_max: r.salary_max,
+          salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
+          salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
           url: r.redirect_url ?? '',
         }));
         setVagas(mapped);
+      } else {
+        // Fallback: buscar sem filtro de salário
+        const urlFallback = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=20&what=${query}&content-type=application/json`;
+        const res2 = await fetch(urlFallback);
+        const data2 = await res2.json();
+        if (data2.results) {
+          const mapped: Vaga[] = data2.results.map((r: any, i: number) => ({
+            id: r.id?.toString() ?? `vaga-${i}`,
+            title: r.title ?? 'Vaga sem título',
+            company: r.company?.display_name ?? 'Empresa confidencial',
+            location: r.location?.display_name ?? 'Brasil',
+            salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
+            salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
+            url: r.redirect_url ?? '',
+          }));
+          setVagas(mapped);
+        }
       }
     } catch (e) {
       console.log('Erro ao buscar vagas:', e);
@@ -116,19 +156,21 @@ export default function VagasScreen() {
   function handleUnlock(vagaId: string) {
     if (unlocked.has(vagaId)) return;
 
-    setPendingId(vagaId);
-    if (adReady && rewardedRef.current) {
+    if (adReady && adRef.current) {
+      pendingIdRef.current = vagaId;
       try {
-        rewardedRef.current.show();
+        adRef.current.show();
       } catch {
-        // Se falhar, destrava direto
-        setUnlocked(prev => new Set(prev).add(vagaId));
-        setPendingId(null);
+        Alert.alert('Anúncio indisponível', 'Tente novamente em alguns segundos.');
+        pendingIdRef.current = null;
       }
     } else {
-      // Ad não carregou — destrava direto (não bloqueia o usuário)
-      setUnlocked(prev => new Set(prev).add(vagaId));
-      setPendingId(null);
+      // Ad NÃO está pronto — avisa o usuário, NÃO destrava
+      Alert.alert(
+        'Carregando anúncio...',
+        'O anúncio ainda está sendo carregado. Aguarde alguns segundos e tente novamente.',
+        [{ text: 'OK' }]
+      );
     }
   }
 
@@ -138,42 +180,49 @@ export default function VagasScreen() {
 
   const fmtSalary = (min?: number, max?: number) => {
     if (!min && !max) return 'Salário não informado';
-    if (min && max) return `R$ ${min.toLocaleString('pt-BR')} – ${max.toLocaleString('pt-BR')}`;
-    if (min) return `A partir de R$ ${min.toLocaleString('pt-BR')}`;
-    return `Até R$ ${max!.toLocaleString('pt-BR')}`;
+    const fmt = (n: number) => `R$ ${n.toLocaleString('pt-BR')}`;
+    if (min && max && min !== max) return `${fmt(min)} – ${fmt(max)}`;
+    if (min) return `A partir de ${fmt(min)}`;
+    return `Até ${fmt(max!)}`;
   };
 
-  const renderVaga = useCallback(({ item }: { item: Vaga }) => {
+  const renderVaga = useCallback(({ item, index }: { item: Vaga; index: number }) => {
     const isUnlocked = unlocked.has(item.id);
+    // Primeira vaga vem destravada de graça (isca)
+    const isFree = index === 0;
+    const showContent = isUnlocked || isFree;
 
     return (
       <View style={vs.card}>
-        {/* Conteúdo — borrado se não destravado */}
         <View style={vs.cardContent}>
-          <Text style={[vs.cardTitle, !isUnlocked && vs.blurred]} numberOfLines={isUnlocked ? 3 : 1}>
-            {isUnlocked ? item.title : '██████ ████ ██████'}
+          <Text style={[vs.cardTitle, !showContent && vs.blurred]} numberOfLines={showContent ? 3 : 1}>
+            {showContent ? item.title : '██████ ████ ██████'}
           </Text>
-          <Text style={[vs.cardCompany, !isUnlocked && vs.blurred]}>
-            {isUnlocked ? item.company : '██████ ███████'}
+          <Text style={[vs.cardCompany, !showContent && vs.blurred]}>
+            {showContent ? item.company : '██████ ███████'}
           </Text>
           <View style={vs.cardMeta}>
-            <Text style={[vs.cardLocation, !isUnlocked && vs.blurred]}>
-              📍 {isUnlocked ? item.location : '████ ██'}
+            <Text style={[vs.cardLocation, !showContent && vs.blurred]}>
+              📍 {showContent ? item.location : '████ ██'}
             </Text>
-            <Text style={[vs.cardSalary, !isUnlocked && vs.blurred]}>
-              💰 {isUnlocked ? fmtSalary(item.salary_min, item.salary_max) : '██████ ████'}
+            <Text style={[vs.cardSalary, !showContent && vs.blurredSalary]}>
+              💰 {showContent ? fmtSalary(item.salary_min, item.salary_max) : 'R$ █████ – █████'}
             </Text>
           </View>
         </View>
 
-        {/* Botão: destravar ou ver vaga */}
-        {isUnlocked ? (
+        {showContent ? (
           <TouchableOpacity style={vs.btnOpen} onPress={() => handleOpenVaga(item.url)}>
             <Text style={vs.btnOpenTxt}>Ver vaga completa →</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={vs.btnUnlock} onPress={() => handleUnlock(item.id)}>
-            <Text style={vs.btnUnlockTxt}>🎬  Assistir anúncio para destravar</Text>
+          <TouchableOpacity
+            style={[vs.btnUnlock, !adReady && vs.btnUnlockLoading]}
+            onPress={() => handleUnlock(item.id)}
+          >
+            <Text style={vs.btnUnlockTxt}>
+              {adReady ? '🎬  Assistir anúncio para destravar' : '⏳  Carregando anúncio...'}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -185,7 +234,6 @@ export default function VagasScreen() {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
       <AdBanner />
 
-      {/* Header */}
       <View style={vs.header}>
         <Text style={vs.headerTitle}>💼 Vagas para você</Text>
         <Text style={vs.headerSub}>
@@ -231,7 +279,6 @@ const vs = StyleSheet.create({
   emptyTitle:   { fontSize:20, fontWeight:'800', color:'#fff' },
   emptySub:     { fontSize:14, color:'rgba(255,255,255,0.4)', textAlign:'center', lineHeight:22 },
 
-  // Card de vaga
   card:         { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, padding:16, overflow:'hidden' },
   cardContent:  { marginBottom:14 },
   cardTitle:    { fontSize:16, fontWeight:'800', color:'#fff', letterSpacing:-0.3, marginBottom:4 },
@@ -240,14 +287,16 @@ const vs = StyleSheet.create({
   cardLocation: { fontSize:12, color:'rgba(255,255,255,0.4)' },
   cardSalary:   { fontSize:13, fontWeight:'700', color:COLORS.success },
 
-  // Estado borrado (texto substituído por blocos █)
-  blurred:      { color:'rgba(255,255,255,0.08)' },
+  // Estado borrado
+  blurred:       { color:'rgba(255,255,255,0.08)' },
+  blurredSalary: { color:'rgba(255,255,255,0.08)' },
 
   // Botão destravar
-  btnUnlock:    { backgroundColor:'rgba(245,168,32,0.12)', borderWidth:1.5, borderColor:'rgba(245,168,32,0.3)', borderRadius:14, paddingVertical:12, alignItems:'center' },
-  btnUnlockTxt: { color:COLORS.primary, fontSize:13, fontWeight:'800' },
+  btnUnlock:        { backgroundColor:'rgba(245,168,32,0.12)', borderWidth:1.5, borderColor:'rgba(245,168,32,0.3)', borderRadius:14, paddingVertical:12, alignItems:'center' },
+  btnUnlockLoading: { opacity:0.5 },
+  btnUnlockTxt:     { color:COLORS.primary, fontSize:13, fontWeight:'800' },
 
   // Botão ver vaga (destravada)
-  btnOpen:      { backgroundColor:COLORS.primary, borderRadius:14, paddingVertical:12, alignItems:'center' },
-  btnOpenTxt:   { color:COLORS.dark, fontSize:13, fontWeight:'800' },
+  btnOpen:    { backgroundColor:COLORS.primary, borderRadius:14, paddingVertical:12, alignItems:'center' },
+  btnOpenTxt: { color:COLORS.dark, fontSize:13, fontWeight:'800' },
 });
