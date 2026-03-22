@@ -6,16 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../lib/constants';
-import { useInterstitial } from '../lib/useInterstitial';
 
 export default function LandingScreen() {
   const logoAnim  = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
   const ctaAnim   = useRef(new Animated.Value(0)).current;
   const statsAnim = useRef(new Animated.Value(0)).current;
-
-  // Interstitial no botão "Começar"
-  const { showAdThenDo } = useInterstitial(['salario', 'emprego', 'carreira', 'vaga emprego']);
 
   useEffect(() => {
     Animated.stagger(120, [
@@ -31,29 +27,15 @@ export default function LandingScreen() {
     transform: [{ translateY: anim.interpolate({ inputRange:[0,1], outputRange:[24,0] }) }],
   });
 
-  const handleComecar = () => {
-    showAdThenDo(() => {
-      router.push('/(onboarding)/cargo');
-    });
-  };
-
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
-
       <View style={s.container}>
-
-        {/* Logo */}
         <Animated.View style={[s.logoWrap, fadeUp(logoAnim)]}>
-          <Image
-            source={require('../assets/images/icon.png')}
-            style={s.logoImg}
-            resizeMode="contain"
-          />
+          <Image source={require('../assets/images/icon.png')} style={s.logoImg} resizeMode="contain" />
           <Text style={s.logoName}>Quanto Ganha!</Text>
         </Animated.View>
 
-        {/* Headline */}
         <Animated.View style={[s.headlineWrap, fadeUp(titleAnim)]}>
           <Text style={s.headline}>
             Você está ganhando{'\n'}
@@ -73,11 +55,10 @@ export default function LandingScreen() {
           </View>
         </Animated.View>
 
-        {/* CTA */}
         <Animated.View style={[s.ctaWrap, fadeUp(ctaAnim)]}>
           <TouchableOpacity
             style={s.ctaBtn}
-            onPress={handleComecar}
+            onPress={() => router.push('/(onboarding)/cargo')}
             activeOpacity={0.85}
           >
             <Text style={s.ctaTxt}>Descobrir se meu salário está competitivo →</Text>
@@ -85,7 +66,6 @@ export default function LandingScreen() {
           <Text style={s.ctaHint}>Leva menos de 1 minuto</Text>
         </Animated.View>
 
-        {/* Stats */}
         <Animated.View style={[s.statsRow, fadeUp(statsAnim)]}>
           {[
             { num:'2.4M', label:'registros CAGED' },
@@ -98,7 +78,6 @@ export default function LandingScreen() {
             </View>
           ))}
         </Animated.View>
-
       </View>
     </SafeAreaView>
   );
