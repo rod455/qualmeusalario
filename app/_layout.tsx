@@ -1,5 +1,9 @@
+// app/_layout.tsx
+// Layout raiz — splash customizada + app open ad + push notifications
+// Fix: usa icon.png com tamanho explícito em vez de splash.png (que tinha padding demais)
+
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, Text, Dimensions } from 'react-native';
 import { Slot, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { initAppOpenAd } from '../lib/appOpenAd';
@@ -11,6 +15,9 @@ import { logScreenView, logPushOpened } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const LOGO_SIZE = Math.min(SCREEN_W * 0.45, 200); // 45% da tela, max 200px
 
 export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
@@ -67,10 +74,11 @@ export default function RootLayout() {
       {!splashDone && (
         <Animated.View style={[s.overlay, { opacity: opacityAnim }]}>
           <Animated.Image
-            source={require('../assets/images/splash.png')}
+            source={require('../assets/images/icon.png')}
             style={[s.logo, { transform: [{ scale: scaleAnim }] }]}
             resizeMode="contain"
           />
+          <Text style={s.brandName}>Quanto Ganha!</Text>
         </Animated.View>
       )}
     </View>
@@ -93,6 +101,16 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 999,
   },
-  // 🆕 Logo MAIOR na splash
-  logo: { width:'85%', height:'55%' },
+  logo: {
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
+    borderRadius: LOGO_SIZE * 0.22, // Cantos arredondados proporcionais
+  },
+  brandName: {
+    marginTop: 20,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: -0.5,
+  },
 });
