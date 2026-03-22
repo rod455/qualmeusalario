@@ -1,3 +1,7 @@
+// app/(tabs)/vagas.tsx
+// Tela de vagas — rewarded para destravar cada vaga
+// Fix: retry mais agressivo, fallback auto-unlock, melhor UX
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity,
@@ -18,8 +22,8 @@ const IS_DEV = __DEV__;
 const REWARDED_ID = IS_DEV
   ? TestIds.REWARDED
   : Platform.OS === 'ios'
-    ? ADMOB.REWARDED_IOS
-    : ADMOB.REWARDED_ANDROID;
+    ? ADMOB.REWARDED_VAGAS_IOS
+    : ADMOB.REWARDED_VAGAS_ANDROID;
 
 type Vaga = {
   id: string;
@@ -37,12 +41,21 @@ export default function VagasScreen() {
   const [loading, setLoading]       = useState(true);
   const [unlocked, setUnlocked]     = useState<Set<string>>(new Set());
   const [adReady, setAdReady]       = useState(false);
+  const [adLoading, setAdLoading]   = useState(true);
   const pendingIdRef                = useRef<string | null>(null);
   const adRef                       = useRef<ReturnType<typeof RewardedAd.createForAdRequest> | null>(null);
   const listenersRef                = useRef<(() => void)[]>([]);
+  const retryCountRef               = useRef(0);
+  const retryTimerRef               = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { fetchVagas(); }, []);
-  useEffect(() => { createAndLoadAd(); return () => cleanupListeners(); }, []);
+  useEffect(() => {
+    createAndLoadAd();
+    return () => {
+      cleanupListeners();
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   function cleanupListeners() {
     listenersRef.current.forEach(fn => fn());
@@ -51,6 +64,8 @@ export default function VagasScreen() {
 
   function createAndLoadAd() {
     cleanupListeners();
+    setAdLoading(true);
+
     try {
       const ad = RewardedAd.createForAdRequest(REWARDED_ID, {
         keywords: ['vaga emprego', 'salario', 'carreira', 'trabalho remoto'],
@@ -59,6 +74,8 @@ export default function VagasScreen() {
 
       const u1 = ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
         setAdReady(true);
+        setAdLoading(false);
+        retryCountRef.current = 0; // Reset retry count on success
       });
 
       const u2 = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
@@ -70,20 +87,40 @@ export default function VagasScreen() {
 
       const u3 = ad.addAdEventListener(AdEventType.CLOSED, () => {
         setAdReady(false);
+        setAdLoading(true);
+        // Se tinha um pending que não recebeu reward (fechou antes), destrava mesmo assim
+        if (pendingIdRef.current) {
+          setUnlocked(prev => new Set(prev).add(pendingIdRef.current!));
+          pendingIdRef.current = null;
+        }
         // Recarregar para próximo uso
-        setTimeout(() => createAndLoadAd(), 500);
+        retryTimerRef.current = setTimeout(() => createAndLoadAd(), 500);
       });
 
-      const u4 = ad.addAdEventListener(AdEventType.ERROR, () => {
+      const u4 = ad.addAdEventListener(AdEventType.ERROR, (error) => {
+        console.log('Rewarded ad error:', error);
         setAdReady(false);
-        // Retry após 5s
-        setTimeout(() => { try { ad.load(); } catch {} }, 5000);
+        retryCountRef.current += 1;
+
+        // Retry com backoff: 2s, 4s, 8s, 16s...
+        const delay = Math.min(2000 * Math.pow(2, retryCountRef.current - 1), 30000);
+
+        // Após 5 falhas seguidas, para de tentar e libera unlock grátis
+        if (retryCountRef.current >= 5) {
+          setAdLoading(false);
+          console.log('Ad failed 5x, enabling free unlock');
+        } else {
+          retryTimerRef.current = setTimeout(() => {
+            try { createAndLoadAd(); } catch {}
+          }, delay);
+        }
       });
 
       listenersRef.current = [u1, u2, u3, u4];
       ad.load();
     } catch (e) {
       console.log('Failed to create rewarded ad:', e);
+      setAdLoading(false);
     }
   }
 
@@ -127,19 +164,31 @@ export default function VagasScreen() {
     if (unlocked.has(vagaId)) return;
 
     if (adReady && adRef.current) {
+      // Ad pronto — exibe
       pendingIdRef.current = vagaId;
       try {
         adRef.current.show();
       } catch {
-        Alert.alert('Erro', 'Não foi possível exibir o anúncio. Tente novamente.');
+        // Falhou ao exibir — destrava grátis
+        setUnlocked(prev => new Set(prev).add(vagaId));
         pendingIdRef.current = null;
+        createAndLoadAd();
       }
+    } else if (retryCountRef.current >= 5) {
+      // Ad falhou muitas vezes — destrava grátis (sem ad)
+      setUnlocked(prev => new Set(prev).add(vagaId));
     } else {
-      // NÃO destrava — avisa que o ad está carregando
+      // Ad carregando — mostra feedback com opção de destravar grátis
       Alert.alert(
-        'Aguarde...',
-        'O anúncio está sendo carregado. Tente novamente em alguns segundos.',
-        [{ text: 'OK' }]
+        'Anúncio carregando...',
+        'O anúncio ainda está sendo preparado. Deseja tentar novamente ou destravar esta vaga gratuitamente?',
+        [
+          { text: 'Tentar novamente', style: 'cancel' },
+          {
+            text: 'Destravar grátis',
+            onPress: () => setUnlocked(prev => new Set(prev).add(vagaId)),
+          },
+        ]
       );
     }
   }
@@ -180,7 +229,11 @@ export default function VagasScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={vs.btnUnlock} onPress={() => handleUnlock(item.id)}>
-            <Text style={vs.btnUnlockTxt}>🎬  Assistir anúncio para destravar</Text>
+            <Text style={vs.btnUnlockTxt}>
+              {adReady ? '🎬  Assistir anúncio para destravar' :
+               retryCountRef.current >= 5 ? '🔓  Destravar vaga' :
+               '⏳  Carregando anúncio...'}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -197,7 +250,9 @@ export default function VagasScreen() {
         <Text style={vs.headerSub}>
           {result ? `Baseado em: ${result.cargo.split('(')[0].trim()}` : 'Vagas disponíveis no mercado'}
         </Text>
-        {!adReady && <Text style={vs.adStatus}>⏳ Preparando anúncios...</Text>}
+        {adLoading && !adReady && retryCountRef.current < 5 && (
+          <Text style={vs.adStatus}>⏳ Preparando anúncios...</Text>
+        )}
       </View>
 
       {loading ? (
@@ -209,7 +264,7 @@ export default function VagasScreen() {
         <View style={vs.emptyWrap}>
           <Text style={vs.emptyEmoji}>🔍</Text>
           <Text style={vs.emptyTitle}>Nenhuma vaga encontrada</Text>
-          <Text style={vs.emptySub}>Tente fazer uma análise primeiro para buscar vagas do seu cargo.</Text>
+          <Text style={vs.emptyTxt}>Tente novamente mais tarde — novas vagas são adicionadas diariamente.</Text>
         </View>
       ) : (
         <FlatList
@@ -218,7 +273,6 @@ export default function VagasScreen() {
           renderItem={renderVaga}
           contentContainerStyle={vs.list}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         />
       )}
     </SafeAreaView>
@@ -226,33 +280,29 @@ export default function VagasScreen() {
 }
 
 const vs = StyleSheet.create({
-  safe:         { flex:1, backgroundColor:COLORS.dark },
-  header:       { paddingHorizontal:20, paddingTop:16, paddingBottom:12 },
-  headerTitle:  { fontSize:22, fontWeight:'900', color:'#fff', letterSpacing:-0.5 },
-  headerSub:    { fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:4 },
-  adStatus:     { fontSize:11, color:'rgba(245,168,32,0.6)', marginTop:4 },
-  list:         { paddingHorizontal:20, paddingBottom:24 },
-  loadingWrap:  { flex:1, alignItems:'center', justifyContent:'center', gap:12 },
-  loadingTxt:   { fontSize:14, color:'rgba(255,255,255,0.4)' },
-  emptyWrap:    { flex:1, alignItems:'center', justifyContent:'center', paddingHorizontal:32, gap:8 },
-  emptyEmoji:   { fontSize:48 },
-  emptyTitle:   { fontSize:20, fontWeight:'800', color:'#fff' },
-  emptySub:     { fontSize:14, color:'rgba(255,255,255,0.4)', textAlign:'center', lineHeight:22 },
-
-  card:         { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, padding:16, overflow:'hidden' },
-  cardContent:  { marginBottom:14 },
-  cardTitle:    { fontSize:16, fontWeight:'800', color:'#fff', letterSpacing:-0.3, marginBottom:4 },
-  cardCompany:  { fontSize:13, color:'rgba(255,255,255,0.5)', fontWeight:'600', marginBottom:10 },
-  cardMeta:     { gap:4 },
-  cardLocation: { fontSize:12, color:'rgba(255,255,255,0.4)' },
-  cardSalary:   { fontSize:13, fontWeight:'700', color:COLORS.success },
-
-  blurred:       { color:'rgba(255,255,255,0.08)' },
-  blurredSalary: { color:'rgba(255,255,255,0.08)' },
-
-  btnUnlock:    { backgroundColor:'rgba(245,168,32,0.12)', borderWidth:1.5, borderColor:'rgba(245,168,32,0.3)', borderRadius:14, paddingVertical:12, alignItems:'center' },
-  btnUnlockTxt: { color:COLORS.primary, fontSize:13, fontWeight:'800' },
-
-  btnOpen:      { backgroundColor:COLORS.primary, borderRadius:14, paddingVertical:12, alignItems:'center' },
-  btnOpenTxt:   { color:COLORS.dark, fontSize:13, fontWeight:'800' },
+  safe:          { flex:1, backgroundColor:COLORS.dark },
+  header:        { paddingHorizontal:20, paddingTop:16, paddingBottom:12 },
+  headerTitle:   { fontSize:22, fontWeight:'900', color:'#fff', letterSpacing:-0.5 },
+  headerSub:     { fontSize:13, color:'rgba(255,255,255,0.4)', marginTop:4 },
+  adStatus:      { fontSize:11, color:COLORS.primary, marginTop:6 },
+  loadingWrap:   { flex:1, alignItems:'center', justifyContent:'center', gap:12 },
+  loadingTxt:    { fontSize:14, color:'rgba(255,255,255,0.4)' },
+  emptyWrap:     { flex:1, alignItems:'center', justifyContent:'center', padding:32, gap:12 },
+  emptyEmoji:    { fontSize:48 },
+  emptyTitle:    { fontSize:20, fontWeight:'800', color:'#fff' },
+  emptyTxt:      { fontSize:14, color:'rgba(255,255,255,0.4)', textAlign:'center', lineHeight:22 },
+  list:          { paddingHorizontal:16, paddingBottom:20, gap:12 },
+  card:          { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, overflow:'hidden' },
+  cardContent:   { padding:16 },
+  cardTitle:     { fontSize:16, fontWeight:'800', color:'#fff', marginBottom:4, lineHeight:22 },
+  cardCompany:   { fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:10 },
+  cardMeta:      { gap:4 },
+  cardLocation:  { fontSize:12, color:'rgba(255,255,255,0.4)' },
+  cardSalary:    { fontSize:13, fontWeight:'700', color:COLORS.primary },
+  blurred:       { color:'rgba(255,255,255,0.15)' },
+  blurredSalary: { color:'rgba(255,255,255,0.15)' },
+  btnOpen:       { backgroundColor:'rgba(23,200,232,0.12)', borderTopWidth:1, borderTopColor:'rgba(255,255,255,0.05)', paddingVertical:14, alignItems:'center' },
+  btnOpenTxt:    { color:COLORS.secondary, fontSize:14, fontWeight:'700' },
+  btnUnlock:     { backgroundColor:'rgba(245,168,32,0.12)', borderTopWidth:1, borderTopColor:'rgba(255,255,255,0.05)', paddingVertical:14, alignItems:'center' },
+  btnUnlockTxt:  { color:COLORS.primary, fontSize:14, fontWeight:'700' },
 });
