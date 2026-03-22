@@ -1,9 +1,9 @@
 // app/_layout.tsx
 // Layout raiz — splash customizada + app open ad + push notifications
-// Fix: usa icon.png com tamanho explícito em vez de splash.png (que tinha padding demais)
+// Fix: logo 180x180 pixels fixos (não percentage)
 
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View, Text, Dimensions } from 'react-native';
+import { Animated, StyleSheet, View, Text } from 'react-native';
 import { Slot, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { initAppOpenAd } from '../lib/appOpenAd';
@@ -15,9 +15,6 @@ import { logScreenView, logPushOpened } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const LOGO_SIZE = Math.min(SCREEN_W * 0.45, 200); // 45% da tela, max 200px
 
 export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
@@ -102,13 +99,13 @@ const s = StyleSheet.create({
     zIndex: 999,
   },
   logo: {
-    width: LOGO_SIZE,
-    height: LOGO_SIZE,
-    borderRadius: LOGO_SIZE * 0.22, // Cantos arredondados proporcionais
+    width: 180,
+    height: 180,
+    borderRadius: 40,
   },
   brandName: {
-    marginTop: 20,
-    fontSize: 28,
+    marginTop: 24,
+    fontSize: 32,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: -0.5,
