@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
+import { deactivatePushToken } from './notifications';
 import type { Session, User } from '@supabase/supabase-js';
 
 export function useAuth() {
@@ -24,6 +25,8 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
+    // 🆕 Desativa o push token antes de deslogar
+    await deactivatePushToken();
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
