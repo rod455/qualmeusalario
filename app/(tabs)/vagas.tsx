@@ -1,6 +1,5 @@
 // app/(tabs)/vagas.tsx
-// Tela de vagas — TODAS trancadas, rewarded para destravar cada uma
-// Mostra faixa salarial + % comparativo antes de destravar
+// Tela de vagas — busca variada, deduplicação agressiva, rewarded para destravar
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -34,6 +33,75 @@ type Vaga = {
   salary_max?: number;
   url: string;
 };
+
+// Gera termos de busca variados baseado no cargo do usuário
+function getSearchQueries(cargo: string, area?: string): string[] {
+  const base = cargo.split('(')[0].trim();
+  const queries = [base];
+
+  // Adiciona variações
+  if (area) queries.push(area);
+
+  // Termos genéricos da mesma área
+  const areaTerms: Record<string, string[]> = {
+    'Tecnologia':        ['desenvolvedor', 'programador', 'software engineer', 'tech', 'TI'],
+    'Design & UX':       ['designer', 'UX', 'UI', 'design'],
+    'Marketing':         ['marketing', 'growth', 'digital', 'mídia'],
+    'Vendas & Comercial':['vendas', 'comercial', 'executivo contas', 'sales'],
+    'Finanças':          ['financeiro', 'contábil', 'controller', 'finanças'],
+    'RH & Pessoas':      ['recursos humanos', 'RH', 'people', 'recrutamento'],
+    'Engenharia':        ['engenheiro', 'engenharia', 'engineering'],
+    'Saúde':             ['saúde', 'médico', 'enfermeiro', 'clínica'],
+  };
+
+  if (area && areaTerms[area]) {
+    for (const term of areaTerms[area]) {
+      if (!queries.includes(term) && term.toLowerCase() !== base.toLowerCase()) {
+        queries.push(term);
+      }
+    }
+  }
+
+  return queries.slice(0, 4); // Max 4 buscas
+}
+
+// Deduplicação agressiva: normaliza título e compara
+function dedupeVagas(vagas: Vaga[]): Vaga[] {
+  const seen = new Set<string>();
+  const unique: Vaga[] = [];
+
+  for (const v of vagas) {
+    // Chave: título normalizado + empresa normalizada + faixa salarial
+    const titleNorm = v.title.toLowerCase().replace(/[^a-záàâãéèêíóôõúç0-9\s]/g, '').trim();
+    const compNorm = v.company.toLowerCase().replace(/[^a-záàâãéèêíóôõúç0-9\s]/g, '').trim();
+    const salaryKey = `${v.salary_min ?? 0}_${v.salary_max ?? 0}`;
+    const key = `${titleNorm}_${compNorm}_${salaryKey}`;
+
+    // Também verifica se título é muito similar (>80% das palavras iguais)
+    let isDuplicate = seen.has(key);
+
+    if (!isDuplicate) {
+      const titleWords = new Set(titleNorm.split(/\s+/));
+      for (const existingKey of seen) {
+        const existingTitle = existingKey.split('_')[0];
+        const existingWords = new Set(existingTitle.split(/\s+/));
+        const common = [...titleWords].filter(w => existingWords.has(w)).length;
+        const similarity = common / Math.max(titleWords.size, existingWords.size);
+        if (similarity > 0.8 && compNorm === existingKey.split('_')[1]) {
+          isDuplicate = true;
+          break;
+        }
+      }
+    }
+
+    if (!isDuplicate) {
+      seen.add(key);
+      unique.push(v);
+    }
+  }
+
+  return unique;
+}
 
 export default function VagasScreen() {
   const result = useOnboardingStore(s => s.result);
@@ -91,12 +159,10 @@ export default function VagasScreen() {
       const u3 = ad.addAdEventListener(AdEventType.CLOSED, () => {
         setAdReady(false);
         isLoadingAdRef.current = false;
-        // Se assistiu (mesmo que fechou antes do reward), destrava
         if (pendingIdRef.current) {
           setUnlocked(prev => new Set(prev).add(pendingIdRef.current!));
           pendingIdRef.current = null;
         }
-        // Recarrega novo ad para próxima vaga
         retryTimerRef.current = setTimeout(() => createAndLoadAd(), 1000);
       });
 
@@ -120,39 +186,53 @@ export default function VagasScreen() {
   async function fetchVagas() {
     setLoading(true);
     try {
-      const cargo = result?.cargo?.split('(')[0]?.trim() ?? 'desenvolvedor';
-      const query = encodeURIComponent(cargo);
+      const cargo = result?.cargo ?? 'desenvolvedor';
+      const area = result?.area;
+      const queries = getSearchQueries(cargo, area ?? undefined);
 
-      let url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=20&what=${query}&salary_min=1&sort_by=salary&content-type=application/json`;
-      let res = await fetch(url);
-      let data = await res.json();
+      let allVagas: Vaga[] = [];
 
-      if (!data.results || data.results.length === 0) {
-        url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=20&what=${query}&content-type=application/json`;
-        res = await fetch(url);
-        data = await res.json();
-      }
+      // Faz múltiplas buscas com termos diferentes para variedade
+      for (let i = 0; i < queries.length; i++) {
+        const query = encodeURIComponent(queries[i]);
+        const page = i + 1; // Páginas diferentes para variar resultados
 
-      if (data.results) {
-        // Deduplica por título + empresa
-        const seen = new Set<string>();
-        const unique: Vaga[] = [];
-        for (const r of data.results) {
-          const key = `${(r.title ?? '').toLowerCase()}_${(r.company?.display_name ?? '').toLowerCase()}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          unique.push({
-            id: r.id?.toString() ?? `vaga-${unique.length}`,
-            title: r.title ?? 'Vaga sem título',
-            company: r.company?.display_name ?? 'Empresa confidencial',
-            location: r.location?.display_name ?? 'Brasil',
-            salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
-            salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
-            url: r.redirect_url ?? '',
-          });
+        try {
+          const url = `https://api.adzuna.com/v1/api/jobs/br/search/${page}?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=10&what=${query}&content-type=application/json`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (data.results) {
+            for (const r of data.results) {
+              allVagas.push({
+                id: r.id?.toString() ?? `vaga-${allVagas.length}`,
+                title: r.title ?? 'Vaga sem título',
+                company: r.company?.display_name ?? 'Empresa confidencial',
+                location: r.location?.display_name ?? 'Brasil',
+                salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
+                salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
+                url: r.redirect_url ?? '',
+              });
+            }
+          }
+        } catch (e) {
+          console.log(`Erro busca "${queries[i]}":`, e);
         }
-        setVagas(unique);
       }
+
+      // Deduplicação agressiva
+      const unique = dedupeVagas(allVagas);
+
+      // Ordena: vagas com salário primeiro, depois por salário desc
+      unique.sort((a, b) => {
+        const aSal = a.salary_max ?? a.salary_min ?? 0;
+        const bSal = b.salary_max ?? b.salary_min ?? 0;
+        if (aSal > 0 && bSal === 0) return -1;
+        if (aSal === 0 && bSal > 0) return 1;
+        return bSal - aSal;
+      });
+
+      setVagas(unique.slice(0, 20)); // Max 20 vagas
     } catch (e) {
       console.log('Erro ao buscar vagas:', e);
     } finally {
@@ -219,7 +299,6 @@ export default function VagasScreen() {
             <Text style={[vs.cardLocation, !isUnlocked && vs.blurred]}>
               📍 {isUnlocked ? item.location : '████ ██'}
             </Text>
-            {/* Faixa salarial SEMPRE visível */}
             <Text style={vs.cardSalary}>
               💰 {fmtSalary(item.salary_min, item.salary_max)}
             </Text>
