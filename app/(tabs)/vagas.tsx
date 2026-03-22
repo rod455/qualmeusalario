@@ -1,6 +1,6 @@
 // app/(tabs)/vagas.tsx
-// Tela de vagas — rewarded dedicado para destravar cada vaga
-// Fix: sem "destravar grátis" fácil, reload robusto, primeira vaga grátis como teaser
+// Tela de vagas — TODAS trancadas, rewarded para destravar cada uma
+// Mostra faixa salarial + % comparativo antes de destravar
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -48,6 +48,8 @@ export default function VagasScreen() {
   const retryTimerRef               = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingAdRef              = useRef(false);
 
+  const myTotal = result?.my?.total ?? 0;
+
   useEffect(() => { fetchVagas(); }, []);
   useEffect(() => {
     createAndLoadAd();
@@ -57,20 +59,13 @@ export default function VagasScreen() {
     };
   }, []);
 
-  // Auto-destrava primeira vaga quando a lista carrega (teaser)
-  useEffect(() => {
-    if (vagas.length > 0 && unlocked.size === 0) {
-      setUnlocked(new Set([vagas[0].id]));
-    }
-  }, [vagas]);
-
   function cleanupListeners() {
     listenersRef.current.forEach(fn => fn());
     listenersRef.current = [];
   }
 
   function createAndLoadAd() {
-    if (isLoadingAdRef.current) return; // Evita carregamentos duplicados
+    if (isLoadingAdRef.current) return;
     isLoadingAdRef.current = true;
     cleanupListeners();
 
@@ -87,7 +82,6 @@ export default function VagasScreen() {
       });
 
       const u2 = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-        // Reward concedido — destrava a vaga pendente
         if (pendingIdRef.current) {
           setUnlocked(prev => new Set(prev).add(pendingIdRef.current!));
           pendingIdRef.current = null;
@@ -97,15 +91,12 @@ export default function VagasScreen() {
       const u3 = ad.addAdEventListener(AdEventType.CLOSED, () => {
         setAdReady(false);
         isLoadingAdRef.current = false;
-
-        // Se o usuário fechou sem ganhar reward, destrava mesmo assim
-        // (ele já assistiu parte do anúncio, não penalizamos)
+        // Se assistiu (mesmo que fechou antes do reward), destrava
         if (pendingIdRef.current) {
           setUnlocked(prev => new Set(prev).add(pendingIdRef.current!));
           pendingIdRef.current = null;
         }
-
-        // Recarrega um novo ad para a próxima vaga
+        // Recarrega novo ad para próxima vaga
         retryTimerRef.current = setTimeout(() => createAndLoadAd(), 1000);
       });
 
@@ -114,8 +105,6 @@ export default function VagasScreen() {
         setAdReady(false);
         isLoadingAdRef.current = false;
         retryCountRef.current += 1;
-
-        // Retry com backoff: 3s, 6s, 12s, 24s, max 60s
         const delay = Math.min(3000 * Math.pow(2, retryCountRef.current - 1), 60000);
         retryTimerRef.current = setTimeout(() => createAndLoadAd(), delay);
       });
@@ -145,15 +134,24 @@ export default function VagasScreen() {
       }
 
       if (data.results) {
-        setVagas(data.results.map((r: any, i: number) => ({
-          id: r.id?.toString() ?? `vaga-${i}`,
-          title: r.title ?? 'Vaga sem título',
-          company: r.company?.display_name ?? 'Empresa confidencial',
-          location: r.location?.display_name ?? 'Brasil',
-          salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
-          salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
-          url: r.redirect_url ?? '',
-        })));
+        // Deduplica por título + empresa
+        const seen = new Set<string>();
+        const unique: Vaga[] = [];
+        for (const r of data.results) {
+          const key = `${(r.title ?? '').toLowerCase()}_${(r.company?.display_name ?? '').toLowerCase()}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          unique.push({
+            id: r.id?.toString() ?? `vaga-${unique.length}`,
+            title: r.title ?? 'Vaga sem título',
+            company: r.company?.display_name ?? 'Empresa confidencial',
+            location: r.location?.display_name ?? 'Brasil',
+            salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
+            salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
+            url: r.redirect_url ?? '',
+          });
+        }
+        setVagas(unique);
       }
     } catch (e) {
       console.log('Erro ao buscar vagas:', e);
@@ -170,24 +168,30 @@ export default function VagasScreen() {
       try {
         adRef.current.show();
       } catch {
-        // Falhou ao exibir — destrava e recarrega
         setUnlocked(prev => new Set(prev).add(vagaId));
         pendingIdRef.current = null;
         setAdReady(false);
         createAndLoadAd();
       }
     } else {
-      // Ad ainda não carregou — avisa e tenta forçar reload
       Alert.alert(
         'Aguarde...',
         'O anúncio está sendo carregado. Tente novamente em alguns segundos.',
         [{ text: 'OK' }]
       );
-      // Força reload se não estiver já carregando
-      if (!isLoadingAdRef.current) {
-        createAndLoadAd();
-      }
+      if (!isLoadingAdRef.current) createAndLoadAd();
     }
+  }
+
+  function getSalaryComparison(min?: number, max?: number): { text: string; color: string } | null {
+    if (!myTotal || myTotal <= 0) return null;
+    const vagaSalary = max ? (min && max ? (min + max) / 2 : max) : min;
+    if (!vagaSalary) return null;
+    const vagaMensal = vagaSalary > 50000 ? Math.round(vagaSalary / 12) : vagaSalary;
+    const diff = Math.round(((vagaMensal - myTotal) / myTotal) * 100);
+    if (diff > 5) return { text: `${diff}% acima do seu salário`, color: COLORS.success };
+    if (diff < -5) return { text: `${Math.abs(diff)}% abaixo do seu salário`, color: COLORS.danger };
+    return { text: 'Faixa similar ao seu salário', color: COLORS.warning };
   }
 
   const fmtSalary = (min?: number, max?: number) => {
@@ -198,8 +202,9 @@ export default function VagasScreen() {
     return `Até ${fmt(max!)}`;
   };
 
-  const renderVaga = useCallback(({ item, index }: { item: Vaga; index: number }) => {
+  const renderVaga = useCallback(({ item }: { item: Vaga }) => {
     const isUnlocked = unlocked.has(item.id);
+    const comparison = getSalaryComparison(item.salary_min, item.salary_max);
 
     return (
       <View style={vs.card}>
@@ -214,9 +219,17 @@ export default function VagasScreen() {
             <Text style={[vs.cardLocation, !isUnlocked && vs.blurred]}>
               📍 {isUnlocked ? item.location : '████ ██'}
             </Text>
-            <Text style={[vs.cardSalary, !isUnlocked && vs.blurredSalary]}>
-              💰 {isUnlocked ? fmtSalary(item.salary_min, item.salary_max) : 'R$ █████ – █████'}
+            {/* Faixa salarial SEMPRE visível */}
+            <Text style={vs.cardSalary}>
+              💰 {fmtSalary(item.salary_min, item.salary_max)}
             </Text>
+            {comparison && (
+              <View style={[vs.compBadge, { backgroundColor: comparison.color + '18' }]}>
+                <Text style={[vs.compText, { color: comparison.color }]}>
+                  {comparison.text}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -230,13 +243,13 @@ export default function VagasScreen() {
             onPress={() => handleUnlock(item.id)}
           >
             <Text style={vs.btnUnlockTxt}>
-              {adReady ? '🎬  Assistir anúncio para destravar' : '⏳  Carregando anúncio...'}
+              {adReady ? '🎬  Assistir anúncio para ver detalhes' : '⏳  Carregando anúncio...'}
             </Text>
           </TouchableOpacity>
         )}
       </View>
     );
-  }, [unlocked, adReady]);
+  }, [unlocked, adReady, myTotal]);
 
   return (
     <SafeAreaView style={vs.safe}>
@@ -248,9 +261,7 @@ export default function VagasScreen() {
         <Text style={vs.headerSub}>
           {result ? `Baseado em: ${result.cargo.split('(')[0].trim()}` : 'Vagas disponíveis no mercado'}
         </Text>
-        {!adReady && (
-          <Text style={vs.adStatus}>⏳ Preparando anúncios...</Text>
-        )}
+        {!adReady && <Text style={vs.adStatus}>⏳ Preparando anúncios...</Text>}
       </View>
 
       {loading ? (
@@ -294,11 +305,12 @@ const vs = StyleSheet.create({
   cardContent:     { padding:16 },
   cardTitle:       { fontSize:16, fontWeight:'800', color:'#fff', marginBottom:4, lineHeight:22 },
   cardCompany:     { fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:10 },
-  cardMeta:        { gap:4 },
+  cardMeta:        { gap:6 },
   cardLocation:    { fontSize:12, color:'rgba(255,255,255,0.4)' },
   cardSalary:      { fontSize:13, fontWeight:'700', color:COLORS.primary },
   blurred:         { color:'rgba(255,255,255,0.15)' },
-  blurredSalary:   { color:'rgba(255,255,255,0.15)' },
+  compBadge:       { alignSelf:'flex-start', paddingHorizontal:10, paddingVertical:4, borderRadius:8, marginTop:4 },
+  compText:        { fontSize:12, fontWeight:'700' },
   btnOpen:         { backgroundColor:'rgba(23,200,232,0.12)', borderTopWidth:1, borderTopColor:'rgba(255,255,255,0.05)', paddingVertical:14, alignItems:'center' },
   btnOpenTxt:      { color:COLORS.secondary, fontSize:14, fontWeight:'700' },
   btnUnlock:       { backgroundColor:'rgba(255,255,255,0.05)', borderTopWidth:1, borderTopColor:'rgba(255,255,255,0.05)', paddingVertical:14, alignItems:'center' },
