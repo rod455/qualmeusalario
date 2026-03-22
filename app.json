@@ -68,7 +68,8 @@
           "userTrackingUsageDescription": "Usamos dados para personalizar anúncios."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true
