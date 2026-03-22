@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { COLORS } from '../lib/constants';
 import { supabase } from '../lib/supabase';
 import { useOnboardingStore } from '../store/useOnboardingStore';
+import { setupPushNotifications } from '../lib/notifications';
 
 export default function CadastroScreen() {
   const [nome, setNome]           = useState('');
@@ -73,6 +74,8 @@ export default function CadastroScreen() {
       }
       if (data.user) {
         await salvarAnalise(data.user.id);
+        // 🆕 Registra push token após criação de conta
+        await setupPushNotifications();
       }
       Alert.alert('✅ Conta criada!', 'Bem-vindo ao Quanto Ganha!', [
         { text: 'OK', onPress: () => router.replace('/(tabs)/resultado') },
@@ -101,7 +104,11 @@ export default function CadastroScreen() {
         setErro(msgs[error.message] ?? error.message);
         return;
       }
-      if (data.user) await salvarAnalise(data.user.id);
+      if (data.user) {
+        await salvarAnalise(data.user.id);
+        // 🆕 Registra push token após login
+        await setupPushNotifications();
+      }
       router.replace('/(tabs)/resultado');
     } catch {
       setErro('Erro de conexão. Tente novamente.');
@@ -159,56 +166,67 @@ export default function CadastroScreen() {
             </View>
           )}
 
-          {erro ? <View style={s.erroBox}><Text style={s.erroTxt}>⚠️ {erro}</Text></View> : null}
+          {erro ? <Text style={s.erro}>{erro}</Text> : null}
 
-          <View style={s.form}>
+          {/* Campos */}
+          <View style={s.fields}>
             {modo === 'cadastro' && (
               <View style={s.fieldWrap}>
-                <Text style={s.fieldLabel}>Nome completo</Text>
-                <View style={s.inputWrap}>
-                  <Text style={s.inputIcon}>👤</Text>
-                  <TextInput style={s.input} value={nome} onChangeText={setNome}
-                    placeholder="Seu nome" placeholderTextColor="rgba(255,255,255,0.25)"
-                    autoCapitalize="words" />
-                </View>
+                <Text style={s.fieldLabel}>Nome</Text>
+                <TextInput
+                  style={s.input}
+                  placeholder="Seu nome completo"
+                  placeholderTextColor="rgba(255,255,255,0.25)"
+                  value={nome}
+                  onChangeText={setNome}
+                  autoCapitalize="words"
+                />
               </View>
             )}
 
             <View style={s.fieldWrap}>
               <Text style={s.fieldLabel}>E-mail</Text>
-              <View style={s.inputWrap}>
-                <Text style={s.inputIcon}>✉️</Text>
-                <TextInput style={s.input} value={email} onChangeText={setEmail}
-                  placeholder="seu@email.com" placeholderTextColor="rgba(255,255,255,0.25)"
-                  keyboardType="email-address" autoCapitalize="none" />
-              </View>
+              <TextInput
+                style={s.input}
+                placeholder="seu@email.com"
+                placeholderTextColor="rgba(255,255,255,0.25)"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
             <View style={s.fieldWrap}>
               <Text style={s.fieldLabel}>Senha</Text>
-              <View style={s.inputWrap}>
-                <Text style={s.inputIcon}>🔑</Text>
-                <TextInput style={s.input} value={senha} onChangeText={setSenha}
-                  placeholder={modo === 'cadastro' ? 'Mínimo 6 caracteres' : 'Sua senha'}
+              <View style={s.passRow}>
+                <TextInput
+                  style={[s.input, { flex:1 }]}
+                  placeholder="Mínimo 6 caracteres"
                   placeholderTextColor="rgba(255,255,255,0.25)"
-                  secureTextEntry={!showSenha} autoCapitalize="none" />
-                <TouchableOpacity onPress={() => setShowSenha(v => !v)}>
+                  value={senha}
+                  onChangeText={setSenha}
+                  secureTextEntry={!showSenha}
+                />
+                <TouchableOpacity style={s.eyeBtn} onPress={() => setShowSenha(!showSenha)}>
                   <Text style={s.eyeTxt}>{showSenha ? '🙈' : '👁️'}</Text>
                 </TouchableOpacity>
               </View>
-              {modo === 'cadastro' && senha.length > 0 && senha.length < 6 &&
-                <Text style={s.fieldError}>Mínimo 6 caracteres</Text>}
             </View>
 
             {modo === 'cadastro' && (
               <View style={s.fieldWrap}>
                 <Text style={s.fieldLabel}>Confirmar senha</Text>
-                <View style={[s.inputWrap, confirma.length > 0 && !senhaMatch && s.inputError]}>
-                  <Text style={s.inputIcon}>🔒</Text>
-                  <TextInput style={s.input} value={confirma} onChangeText={setConfirma}
-                    placeholder="Repita a senha" placeholderTextColor="rgba(255,255,255,0.25)"
-                    secureTextEntry={!showConf} autoCapitalize="none" />
-                  <TouchableOpacity onPress={() => setShowConf(v => !v)}>
+                <View style={s.passRow}>
+                  <TextInput
+                    style={[s.input, { flex:1 }]}
+                    placeholder="Repita a senha"
+                    placeholderTextColor="rgba(255,255,255,0.25)"
+                    value={confirma}
+                    onChangeText={setConfirma}
+                    secureTextEntry={!showConf}
+                  />
+                  <TouchableOpacity style={s.eyeBtn} onPress={() => setShowConf(!showConf)}>
                     <Text style={s.eyeTxt}>{showConf ? '🙈' : '👁️'}</Text>
                   </TouchableOpacity>
                 </View>
@@ -253,27 +271,25 @@ const s = StyleSheet.create({
   content:        { paddingHorizontal:24, paddingTop:8 },
   modoRow:        { flexDirection:'row', backgroundColor:COLORS.surface, borderRadius:16, padding:4, marginBottom:20 },
   modoBtn:        { flex:1, paddingVertical:10, borderRadius:12, alignItems:'center' },
-  modoBtnActive:  { backgroundColor:COLORS.primary },
-  modoBtnTxt:     { fontSize:14, fontWeight:'700', color:'rgba(255,255,255,0.4)' },
-  modoBtnTxtActive:{ color:COLORS.dark },
-  perks:          { gap:10, marginBottom:20, backgroundColor:COLORS.surface, borderRadius:16, padding:14, borderWidth:1, borderColor:'rgba(255,255,255,0.07)' },
+  modoBtnActive:  { backgroundColor:'rgba(245,168,32,0.15)' },
+  modoBtnTxt:     { fontSize:14, fontWeight:'600', color:'rgba(255,255,255,0.4)' },
+  modoBtnTxtActive: { color:COLORS.primary, fontWeight:'700' },
+  perks:          { gap:10, marginBottom:20 },
   perk:           { flexDirection:'row', alignItems:'center', gap:10 },
-  perkIcon:       { width:30, height:30, borderRadius:8, backgroundColor:'rgba(245,168,32,0.12)', alignItems:'center', justifyContent:'center', flexShrink:0 },
-  perkTxt:        { fontSize:13, color:'rgba(255,255,255,0.65)', flex:1 },
-  erroBox:        { backgroundColor:'rgba(226,75,74,0.12)', borderWidth:1, borderColor:'rgba(226,75,74,0.3)', borderRadius:12, padding:12, marginBottom:16 },
-  erroTxt:        { fontSize:13, color:COLORS.danger },
-  form:           { gap:14, marginBottom:20 },
-  fieldWrap:      { gap:6 },
-  fieldLabel:     { fontSize:11, fontWeight:'700', color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:0.7 },
-  inputWrap:      { flexDirection:'row', alignItems:'center', backgroundColor:COLORS.surface, borderWidth:1.5, borderColor:'rgba(255,255,255,0.10)', borderRadius:14, paddingHorizontal:14, paddingVertical:13, gap:10 },
-  inputError:     { borderColor:COLORS.danger },
-  inputIcon:      { fontSize:15 },
-  input:          { flex:1, fontSize:15, color:'#fff', padding:0 },
-  eyeTxt:         { fontSize:15, paddingHorizontal:2 },
-  fieldError:     { fontSize:11, color:COLORS.danger },
-  fieldOk:        { fontSize:11, color:COLORS.success },
-  cta:            { backgroundColor:COLORS.primary, borderRadius:28, height:52, alignItems:'center', justifyContent:'center', marginBottom:14 },
-  ctaDisabled:    { opacity:0.35 },
+  perkIcon:       { width:32, height:32, borderRadius:8, backgroundColor:'rgba(255,255,255,0.06)', alignItems:'center', justifyContent:'center' },
+  perkTxt:        { fontSize:13, color:'rgba(255,255,255,0.6)', fontWeight:'500' },
+  erro:           { backgroundColor:'rgba(226,75,74,0.12)', borderRadius:12, padding:12, color:COLORS.danger, fontSize:13, fontWeight:'600', marginBottom:16, textAlign:'center' },
+  fields:         { gap:16, marginBottom:24 },
+  fieldWrap:      {},
+  fieldLabel:     { fontSize:12, fontWeight:'700', color:'rgba(255,255,255,0.45)', marginBottom:6, textTransform:'uppercase', letterSpacing:0.5 },
+  input:          { backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.08)', borderRadius:14, height:50, paddingHorizontal:16, color:'#fff', fontSize:15 },
+  passRow:        { flexDirection:'row', alignItems:'center', gap:8 },
+  eyeBtn:         { padding:8 },
+  eyeTxt:         { fontSize:18 },
+  fieldError:     { fontSize:11, color:COLORS.danger, marginTop:4 },
+  fieldOk:        { fontSize:11, color:COLORS.success, marginTop:4 },
+  cta:            { width:'100%', backgroundColor:COLORS.primary, borderRadius:28, height:54, alignItems:'center', justifyContent:'center', marginBottom:12 },
+  ctaDisabled:    { opacity:0.4 },
   ctaTxt:         { color:COLORS.dark, fontSize:16, fontWeight:'900', letterSpacing:-0.3 },
-  terms:          { fontSize:11, color:'rgba(255,255,255,0.2)', textAlign:'center', lineHeight:17 },
+  terms:          { fontSize:11, color:'rgba(255,255,255,0.25)', textAlign:'center', lineHeight:16 },
 });

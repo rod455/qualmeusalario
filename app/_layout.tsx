@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Slot } from 'expo-router';
+import { Slot, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { initAppOpenAd } from '../lib/appOpenAd';
+import {
+  setupPushNotifications,
+  addNotificationListeners,
+} from '../lib/notifications';
+import { supabase } from '../lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -14,6 +19,30 @@ export default function RootLayout() {
   useEffect(() => {
     // 🆕 Inicializa o App Open Ad (interstitial de abertura)
     initAppOpenAd();
+
+    // 🆕 Push Notifications — registra se já logado
+    initPushIfLoggedIn();
+
+    // 🆕 Listeners de notificação (foreground + tap)
+    const cleanupListeners = addNotificationListeners(
+      // onReceive (foreground) — apenas loga
+      (notification) => {
+        console.log('Notificação recebida:', notification.request.content.title);
+      },
+      // onTap — navega conforme dados da notificação
+      (response) => {
+        const data = response.notification.request.content.data;
+        if (data?.screen) {
+          // Ex: push com { screen: '/(tabs)/vagas' } navega para vagas
+          try {
+            router.push(data.screen as string);
+          } catch {
+            // Se a rota não existir, vai pro resultado
+            router.push('/(tabs)/resultado');
+          }
+        }
+      },
+    );
 
     // Pulso suave enquanto carrega
     const pulse = Animated.loop(
@@ -40,6 +69,7 @@ export default function RootLayout() {
     return () => {
       clearTimeout(timer);
       pulse.stop();
+      cleanupListeners();
     };
   }, []);
 
@@ -57,6 +87,21 @@ export default function RootLayout() {
       )}
     </View>
   );
+}
+
+/**
+ * Se o usuário já estiver logado, registra push automaticamente.
+ * Caso contrário, o push será registrado após login/cadastro.
+ */
+async function initPushIfLoggedIn() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await setupPushNotifications();
+    }
+  } catch (e) {
+    console.log('Push init check falhou:', e);
+  }
 }
 
 const s = StyleSheet.create({
