@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { COLORS } from '../../lib/constants';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 const CIDADES = [
   {nome:'São Paulo',           uf:'SP', mult:1.00},
@@ -36,7 +37,7 @@ const MODEL_LABEL: Record<string,string> = { presencial:'Presencial', hibrido:'H
 const MODEL_ICON:  Record<string,string>  = { presencial:'🏢', hibrido:'🔄', remoto:'🏠' };
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const MAX_EXP = 20;
-const TRACK_WIDTH = 280; // largura efetiva da barra
+const TRACK_WIDTH = 280;
 
 export default function LocalizacaoScreen() {
   const { setCidade, setWorkModel, setExp, workModel } = useOnboardingStore();
@@ -45,7 +46,9 @@ export default function LocalizacaoScreen() {
   const [selected, setSelected] = useState<any>(null);
   const [years, setYears]       = useState<number | null>(null);
 
-  // Slider pan
+  // 🆕 Interstitial entre tela 2 e tela 3
+  const { showAdThenDo } = useInterstitial(['salario', 'emprego', 'carreira', 'mercado trabalho']);
+
   const sliderX = useState(new Animated.Value(0))[0];
   const [sliderVal, setSliderVal] = useState(0);
 
@@ -73,9 +76,7 @@ export default function LocalizacaoScreen() {
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt) => {
-      // Calcula posição relativa ao início da barra
-    },
+    onPanResponderGrant: () => {},
     onPanResponderMove: (evt, gestureState) => {
       const newX = Math.max(0, Math.min(TRACK_WIDTH, gestureState.moveX - 48));
       const newVal = Math.round((newX / TRACK_WIDTH) * MAX_EXP);
@@ -97,6 +98,14 @@ export default function LocalizacaoScreen() {
 
   const canContinue = !!selected && years !== null;
   const thumbPos = (displayYears / MAX_EXP) * 100;
+
+  // 🆕 Continuar com interstitial
+  const handleContinue = () => {
+    if (!canContinue) return;
+    showAdThenDo(() => {
+      router.push('/(onboarding)/salario');
+    });
+  };
 
   return (
     <SafeAreaView style={s.safe}>
@@ -166,13 +175,11 @@ export default function LocalizacaoScreen() {
             ))}
           </View>
 
-          {/* Experiência — stepper compacto + slider */}
           <View style={s.expHeader}>
             <Text style={s.label}>Anos de experiência</Text>
             {years === null && <View style={s.expRequired}><Text style={s.expRequiredTxt}>obrigatório</Text></View>}
           </View>
 
-          {/* Stepper */}
           <View style={[s.stepperCard, years === null && s.stepperCardEmpty]}>
             <TouchableOpacity style={[s.stepperBtn, displayYears <= 0 && s.stepperBtnOff]} onPress={() => changeYears(-1)} disabled={displayYears <= 0}>
               <Text style={[s.stepperBtnTxt, displayYears <= 0 && s.stepperBtnTxtOff]}>−</Text>
@@ -189,7 +196,6 @@ export default function LocalizacaoScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Slider visual */}
           {years !== null && (
             <View style={s.sliderWrap}>
               <View style={s.sliderTrack} {...panResponder.panHandlers}>
@@ -214,9 +220,10 @@ export default function LocalizacaoScreen() {
             {!selected ? '📍 Selecione uma cidade' : '⏱ Informe seus anos de experiência'}
           </Text>
         )}
+        {/* 🆕 Continuar agora com interstitial */}
         <TouchableOpacity
           style={[s.cta, !canContinue && s.ctaDisabled]}
-          onPress={() => canContinue && router.push('/(onboarding)/salario')}
+          onPress={handleContinue}
           disabled={!canContinue}
         >
           <Text style={s.ctaTxt}>Continuar →</Text>
@@ -274,7 +281,6 @@ const s = StyleSheet.create({
   stepperPlaceholder:{ fontSize:32, fontWeight:'900', color:'rgba(255,255,255,0.15)', letterSpacing:-1 },
   stepperLabel:  { fontSize:12, color:'rgba(255,255,255,0.4)', marginTop:2 },
   stepperLabelEmpty:{ color:'rgba(226,75,74,0.6)', fontStyle:'italic' },
-  // Slider
   sliderWrap:    { marginTop:14 },
   sliderTrack:   { height:20, justifyContent:'center', paddingHorizontal:10 },
   sliderFill:    { position:'absolute', left:10, height:4, backgroundColor:COLORS.primary, borderRadius:2 },
