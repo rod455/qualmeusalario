@@ -7,11 +7,16 @@ import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { fmtBRL } from '../../lib/salary';
 import { COLORS } from '../../lib/constants';
+import AdBanner from '../../components/AdBanner';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 export default function PerfilScreen() {
   const result = useOnboardingStore(s => s.result);
   const reset  = useOnboardingStore(s => s.reset);
   const ab     = (result?.diff ?? 0) >= 0;
+
+  // 🆕 Interstitial para ações no perfil
+  const { showAdThenDo } = useInterstitial(['carreira', 'salario', 'curso online', 'emprego']);
 
   const handleShare = async () => {
     if (!result) return;
@@ -21,9 +26,28 @@ export default function PerfilScreen() {
     });
   };
 
+  // 🆕 Nova análise com interstitial
+  const handleNovaAnalise = () => {
+    showAdThenDo(() => {
+      reset();
+      router.replace('/(onboarding)/cargo');
+    });
+  };
+
+  // 🆕 Criar conta com interstitial
+  const handleCriarConta = () => {
+    showAdThenDo(() => {
+      router.push('/cadastro');
+    });
+  };
+
   return (
     <SafeAreaView style={ps.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
+
+      {/* 🆕 Banner ad no topo */}
+      <AdBanner />
+
       <ScrollView showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -90,10 +114,10 @@ export default function PerfilScreen() {
           </View>
         )}
 
-        {/* Ações */}
+        {/* Ações — 🆕 Nova análise agora tem interstitial */}
         <View style={ps.card}>
           {[
-            { icon:'🔄', label:'Nova análise',      color:'rgba(245,168,32,0.15)', onPress: () => { reset(); router.replace('/(onboarding)/cargo'); } },
+            { icon:'🔄', label:'Nova análise',      color:'rgba(245,168,32,0.15)', onPress: handleNovaAnalise },
             { icon:'💼', label:'Ver vagas',          color:'rgba(23,200,232,0.15)', onPress: () => router.push('/(tabs)/vagas') },
             { icon:'🎯', label:'Treinar negociação', color:'rgba(29,190,117,0.15)', onPress: () => router.push('/(tabs)/negociacao') },
             { icon:'📈', label:'Ver tracker',        color:'rgba(245,168,32,0.10)', onPress: () => router.push('/(tabs)/tracker') },
@@ -110,11 +134,11 @@ export default function PerfilScreen() {
           ))}
         </View>
 
-        {/* CTA cadastro */}
+        {/* CTA cadastro — 🆕 com interstitial */}
         <View style={[ps.card, ps.ctaCard]}>
           <Text style={ps.ctaCardTitle}>Salve seu histórico 📊</Text>
           <Text style={ps.ctaCardSub}>Crie uma conta grátis para guardar suas análises e receber alertas de mercado.</Text>
-          <TouchableOpacity style={ps.ctaCardBtn} onPress={() => router.push('/cadastro')}>
+          <TouchableOpacity style={ps.ctaCardBtn} onPress={handleCriarConta}>
             <Text style={ps.ctaCardBtnTxt}>Criar conta grátis →</Text>
           </TouchableOpacity>
         </View>
@@ -150,21 +174,21 @@ const ps = StyleSheet.create({
   pillRedTxt:   { fontSize:11, fontWeight:'700', color:COLORS.danger },
   green:        { color:COLORS.success },
   red:          { color:COLORS.danger },
-  resultRow:    { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingVertical:9, borderTopWidth:0.5, borderTopColor:'rgba(255,255,255,0.06)' },
-  resultLabel:  { fontSize:12, color:'rgba(255,255,255,0.35)' },
-  resultVal:    { fontSize:13, fontWeight:'800', color:'rgba(255,255,255,0.8)' },
-  shareBtn:     { backgroundColor:COLORS.primary, borderRadius:28, height:46, alignItems:'center', justifyContent:'center' },
+  resultRow:    { flexDirection:'row', justifyContent:'space-between', paddingVertical:8, borderTopWidth:0.5, borderTopColor:'rgba(255,255,255,0.06)' },
+  resultLabel:  { fontSize:13, color:'rgba(255,255,255,0.4)' },
+  resultVal:    { fontSize:13, fontWeight:'700', color:'#fff' },
+  shareBtn:     { backgroundColor:COLORS.primary, borderRadius:28, height:44, alignItems:'center', justifyContent:'center' },
   shareBtnTxt:  { color:COLORS.dark, fontSize:14, fontWeight:'800' },
-  settRow:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingVertical:13 },
+  settRow:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingVertical:12 },
   settBorder:   { borderTopWidth:0.5, borderTopColor:'rgba(255,255,255,0.06)' },
   settLeft:     { flexDirection:'row', alignItems:'center', gap:12 },
-  settIcon:     { width:36, height:36, borderRadius:11, alignItems:'center', justifyContent:'center' },
+  settIcon:     { width:36, height:36, borderRadius:10, alignItems:'center', justifyContent:'center' },
   settEmoji:    { fontSize:16 },
   settName:     { fontSize:14, fontWeight:'600', color:'#fff' },
-  settArrow:    { fontSize:20, color:'rgba(255,255,255,0.18)' },
-  ctaCard:      { backgroundColor:'rgba(245,168,32,0.06)', borderColor:'rgba(245,168,32,0.15)' },
-  ctaCardTitle: { fontSize:16, fontWeight:'800', color:'#fff', marginBottom:6 },
-  ctaCardSub:   { fontSize:13, color:'rgba(255,255,255,0.45)', lineHeight:20, marginBottom:14 },
-  ctaCardBtn:   { backgroundColor:COLORS.primary, borderRadius:28, height:46, alignItems:'center', justifyContent:'center' },
+  settArrow:    { fontSize:20, color:'rgba(255,255,255,0.15)' },
+  ctaCard:      { backgroundColor:'rgba(245,168,32,0.08)', borderColor:'rgba(245,168,32,0.2)' },
+  ctaCardTitle: { fontSize:16, fontWeight:'800', color:'#fff', letterSpacing:-0.3, marginBottom:5 },
+  ctaCardSub:   { fontSize:13, color:'rgba(255,255,255,0.4)', lineHeight:20, marginBottom:14 },
+  ctaCardBtn:   { backgroundColor:COLORS.primary, borderRadius:28, height:44, alignItems:'center', justifyContent:'center' },
   ctaCardBtnTxt:{ color:COLORS.dark, fontSize:14, fontWeight:'800' },
 });

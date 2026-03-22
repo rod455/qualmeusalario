@@ -8,6 +8,7 @@ import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { fmtBRL } from '../../lib/salary';
 import { COLORS } from '../../lib/constants';
 import AdBanner from '../../components/AdBanner';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 function Bar({ label, myVal, mktVal, max }: { label:string; myVal:number; mktVal:number; max:number }) {
   const myW  = useRef(new Animated.Value(0)).current;
@@ -55,6 +56,9 @@ export default function ResultadoScreen() {
   const result = useOnboardingStore(s => s.result);
   const reset  = useOnboardingStore(s => s.reset);
 
+  // 🆕 Interstitial para ações na tela de resultado
+  const { showAdThenDo } = useInterstitial(['salario', 'emprego', 'carreira', 'curso online']);
+
   if (!result) {
     return (
       <SafeAreaView style={s.empty}>
@@ -80,10 +84,21 @@ export default function ResultadoScreen() {
     { label:'Outros',       my:result.my.out,   mkt:result.mkt.out,   skip: result.my.out===0  && result.mkt.out===0  },
   ];
 
-  const handleShare = async () => {
-    const dir = ab ? 'acima' : 'abaixo';
-    await Share.share({
-      message: `Meu salário está ${Math.abs(result.diff)}% ${dir} do mercado para ${result.cargo.split('(')[0].trim()} em ${result.cidade.nome}.\n\nCalcula o seu → quantoganha.com.br`,
+  // 🆕 Compartilhar com interstitial antes
+  const handleShare = () => {
+    showAdThenDo(async () => {
+      const dir = ab ? 'acima' : 'abaixo';
+      await Share.share({
+        message: `Meu salário está ${Math.abs(result.diff)}% ${dir} do mercado para ${result.cargo.split('(')[0].trim()} em ${result.cidade.nome}.\n\nCalcula o seu → quantoganha.com.br`,
+      });
+    });
+  };
+
+  // 🆕 Nova análise com interstitial antes
+  const handleRefazer = () => {
+    showAdThenDo(() => {
+      reset();
+      router.replace('/(onboarding)/cargo');
     });
   };
 
@@ -93,7 +108,7 @@ export default function ResultadoScreen() {
 
       {/* Topbar: Refazer | Logo | Login */}
       <View style={s.topbar}>
-        <TouchableOpacity style={s.refazerBtn} onPress={() => { reset(); router.replace('/(onboarding)/cargo'); }}>
+        <TouchableOpacity style={s.refazerBtn} onPress={handleRefazer}>
           <Text style={s.refazerTxt}>← Refazer</Text>
         </TouchableOpacity>
         <View style={s.logoRow}>
@@ -105,7 +120,7 @@ export default function ResultadoScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 🆕 Banner ad */}
+      {/* Banner ad */}
       <AdBanner />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -208,22 +223,22 @@ const s = StyleSheet.create({
   totalVals:    { alignItems:'flex-end' },
   totalYou:     { fontSize:18, fontWeight:'900', letterSpacing:-0.5 },
   totalMkt:     { fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:2 },
-  gapCard:      { marginHorizontal:20, marginBottom:16, backgroundColor:'rgba(226,75,74,0.08)', borderWidth:1, borderColor:'rgba(226,75,74,0.18)', borderRadius:24, padding:18 },
-  gapTitle:     { fontSize:14, fontWeight:'700', color:COLORS.danger, marginBottom:14 },
-  gapRow:       { flexDirection:'row' },
+  gapCard:      { marginHorizontal:20, marginBottom:16, backgroundColor:'rgba(226,75,74,0.08)', borderWidth:1, borderColor:'rgba(226,75,74,0.15)', borderRadius:24, padding:18 },
+  gapTitle:     { fontSize:15, fontWeight:'800', color:COLORS.danger, marginBottom:12 },
+  gapRow:       { flexDirection:'row', alignItems:'center' },
   gapItem:      { flex:1, alignItems:'center' },
-  gapDiv:       { width:1, backgroundColor:'rgba(226,75,74,0.2)' },
-  gapAmt:       { fontSize:22, fontWeight:'900', color:COLORS.danger, letterSpacing:-0.5 },
-  gapPer:       { fontSize:12, color:'rgba(255,255,255,0.3)', marginTop:4 },
+  gapAmt:       { fontSize:20, fontWeight:'900', color:COLORS.danger, letterSpacing:-0.5 },
+  gapPer:       { fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:2 },
+  gapDiv:       { width:1, height:32, backgroundColor:'rgba(255,255,255,0.08)' },
   ctaSection:   { paddingHorizontal:20, gap:12 },
   ctaShare:     { backgroundColor:COLORS.primary, borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },
-  ctaShareTxt:  { color:COLORS.dark, fontSize:15, fontWeight:'800' },
-  notifCard:    { flexDirection:'row', alignItems:'center', justifyContent:'space-between', backgroundColor:COLORS.surface, borderWidth:1.5, borderColor:'rgba(23,200,232,0.2)', borderRadius:20, padding:16 },
-  notifLeft:    { flexDirection:'row', alignItems:'center', gap:12, flex:1 },
-  notifIconWrap:{ width:44, height:44, borderRadius:12, backgroundColor:'rgba(23,200,232,0.12)', alignItems:'center', justifyContent:'center', flexShrink:0 },
-  notifIcon:    { fontSize:20 },
+  ctaShareTxt:  { color:COLORS.dark, fontSize:15, fontWeight:'900', letterSpacing:-0.3 },
+  notifCard:    { flexDirection:'row', alignItems:'center', backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, padding:14 },
+  notifLeft:    { flex:1, flexDirection:'row', alignItems:'center', gap:12 },
+  notifIconWrap:{ width:40, height:40, borderRadius:12, backgroundColor:'rgba(245,168,32,0.12)', alignItems:'center', justifyContent:'center' },
+  notifIcon:    { fontSize:18 },
   notifText:    { flex:1 },
-  notifTitle:   { fontSize:14, fontWeight:'800', color:'#fff', letterSpacing:-0.2, marginBottom:3 },
-  notifSub:     { fontSize:12, color:'rgba(255,255,255,0.4)', lineHeight:17 },
-  notifArrow:   { fontSize:22, color:COLORS.secondary, paddingLeft:8 },
+  notifTitle:   { fontSize:13, fontWeight:'700', color:'#fff', marginBottom:2 },
+  notifSub:     { fontSize:11, color:'rgba(255,255,255,0.35)', lineHeight:16 },
+  notifArrow:   { fontSize:20, color:'rgba(255,255,255,0.2)', paddingLeft:8 },
 });

@@ -3,13 +3,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../../lib/constants';
 import AdBanner from '../../components/AdBanner';
+import { useInterstitial } from '../../lib/useInterstitial';
 
 export default function TrackerScreen() {
+  // 🆕 Interstitial antes de navegar para cadastro
+  const { showAdThenDo } = useInterstitial(['salario', 'carreira', 'mercado trabalho', 'curso online']);
+
+  function handleCTA() {
+    showAdThenDo(() => {
+      router.push('/cadastro');
+    });
+  }
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
-      {/* 🆕 Banner ad no topo */}
+      {/* Banner ad no topo */}
       <AdBanner />
       <View style={s.container}>
         <View style={s.iconWrap}><Text style={s.icon}>🔒</Text></View>
@@ -28,7 +38,8 @@ export default function TrackerScreen() {
             </View>
           ))}
         </View>
-        <TouchableOpacity style={s.cta} onPress={() => router.push('/cadastro')}>
+        {/* 🆕 CTA agora com interstitial */}
+        <TouchableOpacity style={s.cta} onPress={handleCTA}>
           <Text style={s.ctaTxt}>Criar conta grátis →</Text>
         </TouchableOpacity>
         <Text style={s.hint}>100% gratuito • Sem cartão de crédito</Text>
