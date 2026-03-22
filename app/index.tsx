@@ -14,7 +14,7 @@ export default function LandingScreen() {
   const ctaAnim   = useRef(new Animated.Value(0)).current;
   const statsAnim = useRef(new Animated.Value(0)).current;
 
-  // 🆕 Interstitial para o botão "Começar"
+  // Interstitial no botão "Começar"
   const { showAdThenDo } = useInterstitial(['salario', 'emprego', 'carreira', 'vaga emprego']);
 
   useEffect(() => {
@@ -31,17 +31,9 @@ export default function LandingScreen() {
     transform: [{ translateY: anim.interpolate({ inputRange:[0,1], outputRange:[24,0] }) }],
   });
 
-  // 🆕 Começar com interstitial
   const handleComecar = () => {
     showAdThenDo(() => {
       router.push('/(onboarding)/cargo');
-    });
-  };
-
-  // 🆕 Ver vagas com interstitial → vai direto para aba vagas
-  const handleVerVagas = () => {
-    showAdThenDo(() => {
-      router.push('/(tabs)/vagas');
     });
   };
 
@@ -81,9 +73,8 @@ export default function LandingScreen() {
           </View>
         </Animated.View>
 
-        {/* CTAs */}
+        {/* CTA */}
         <Animated.View style={[s.ctaWrap, fadeUp(ctaAnim)]}>
-          {/* 🆕 CTA principal com interstitial */}
           <TouchableOpacity
             style={s.ctaBtn}
             onPress={handleComecar}
@@ -91,16 +82,6 @@ export default function LandingScreen() {
           >
             <Text style={s.ctaTxt}>Descobrir se meu salário está competitivo →</Text>
           </TouchableOpacity>
-
-          {/* 🆕 Botão secundário: Ver Vagas */}
-          <TouchableOpacity
-            style={s.ctaVagas}
-            onPress={handleVerVagas}
-            activeOpacity={0.85}
-          >
-            <Text style={s.ctaVagasTxt}>💼  VER VAGAS MELHORES QUE A MINHA</Text>
-          </TouchableOpacity>
-
           <Text style={s.ctaHint}>Leva menos de 1 minuto</Text>
         </Animated.View>
 
@@ -125,7 +106,7 @@ export default function LandingScreen() {
 
 const s = StyleSheet.create({
   safe:          { flex:1, backgroundColor:COLORS.dark },
-  container:     { flex:1, paddingHorizontal:24, justifyContent:'center', gap:28 },
+  container:     { flex:1, paddingHorizontal:24, justifyContent:'center', gap:32 },
   logoWrap:      { flexDirection:'row', alignItems:'center', gap:10, justifyContent:'center' },
   logoImg:       { width:44, height:44, borderRadius:12 },
   logoName:      { fontSize:20, fontWeight:'800', color:'#fff', letterSpacing:-0.4 },
@@ -140,9 +121,6 @@ const s = StyleSheet.create({
   ctaWrap:       { gap:10, alignItems:'center' },
   ctaBtn:        { width:'100%', backgroundColor:COLORS.primary, borderRadius:28, paddingVertical:16, paddingHorizontal:20, alignItems:'center' },
   ctaTxt:        { color:COLORS.dark, fontSize:15, fontWeight:'900', letterSpacing:-0.3, textAlign:'center' },
-  // 🆕 Botão secundário "Ver Vagas"
-  ctaVagas:      { width:'100%', backgroundColor:'rgba(23,200,232,0.12)', borderWidth:1.5, borderColor:'rgba(23,200,232,0.3)', borderRadius:28, paddingVertical:14, paddingHorizontal:20, alignItems:'center' },
-  ctaVagasTxt:   { color:COLORS.secondary, fontSize:13, fontWeight:'800', letterSpacing:0.3, textAlign:'center' },
   ctaHint:       { fontSize:12, color:'rgba(255,255,255,0.3)' },
   statsRow:      { flexDirection:'row', backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, overflow:'hidden' },
   statItem:      { flex:1, alignItems:'center', paddingVertical:18, paddingHorizontal:8 },
