@@ -55,8 +55,6 @@ const br = StyleSheet.create({
 export default function ResultadoScreen() {
   const result = useOnboardingStore(s => s.result);
   const reset  = useOnboardingStore(s => s.reset);
-
-  // 🆕 Interstitial para ações na tela de resultado
   const { showAdThenDo } = useInterstitial(['salario', 'emprego', 'carreira', 'curso online']);
 
   if (!result) {
@@ -84,7 +82,6 @@ export default function ResultadoScreen() {
     { label:'Outros',       my:result.my.out,   mkt:result.mkt.out,   skip: result.my.out===0  && result.mkt.out===0  },
   ];
 
-  // 🆕 Compartilhar com interstitial antes
   const handleShare = () => {
     showAdThenDo(async () => {
       const dir = ab ? 'acima' : 'abaixo';
@@ -94,19 +91,19 @@ export default function ResultadoScreen() {
     });
   };
 
-  // 🆕 Nova análise com interstitial antes
   const handleRefazer = () => {
-    showAdThenDo(() => {
-      reset();
-      router.replace('/(onboarding)/cargo');
-    });
+    showAdThenDo(() => { reset(); router.replace('/(onboarding)/cargo'); });
+  };
+
+  // 🆕 Ver vagas com interstitial
+  const handleVerVagas = () => {
+    showAdThenDo(() => { router.push('/(tabs)/vagas'); });
   };
 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
-      {/* Topbar: Refazer | Logo | Login */}
       <View style={s.topbar}>
         <TouchableOpacity style={s.refazerBtn} onPress={handleRefazer}>
           <Text style={s.refazerTxt}>← Refazer</Text>
@@ -120,7 +117,6 @@ export default function ResultadoScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Banner ad */}
       <AdBanner />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -168,6 +164,11 @@ export default function ResultadoScreen() {
 
         {/* CTAs */}
         <View style={s.ctaSection}>
+          {/* 🆕 Botão VER VAGAS em destaque */}
+          <TouchableOpacity style={s.ctaVagas} onPress={handleVerVagas}>
+            <Text style={s.ctaVagasTxt}>💼  VER VAGAS MELHORES QUE A MINHA</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={s.ctaShare} onPress={handleShare}>
             <Text style={s.ctaShareTxt}>🎬  Compartilhar resultado</Text>
           </TouchableOpacity>
@@ -231,6 +232,9 @@ const s = StyleSheet.create({
   gapPer:       { fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:2 },
   gapDiv:       { width:1, height:32, backgroundColor:'rgba(255,255,255,0.08)' },
   ctaSection:   { paddingHorizontal:20, gap:12 },
+  // 🆕 Botão "Ver Vagas" em destaque
+  ctaVagas:     { backgroundColor:'rgba(23,200,232,0.12)', borderWidth:1.5, borderColor:'rgba(23,200,232,0.3)', borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },
+  ctaVagasTxt:  { color:COLORS.secondary, fontSize:14, fontWeight:'900', letterSpacing:0.3 },
   ctaShare:     { backgroundColor:COLORS.primary, borderRadius:28, height:52, alignItems:'center', justifyContent:'center' },
   ctaShareTxt:  { color:COLORS.dark, fontSize:15, fontWeight:'900', letterSpacing:-0.3 },
   notifCard:    { flexDirection:'row', alignItems:'center', backgroundColor:COLORS.surface, borderWidth:1, borderColor:'rgba(255,255,255,0.07)', borderRadius:20, padding:14 },
