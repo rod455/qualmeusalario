@@ -8,14 +8,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { COLORS, CLAUDE_API_KEY } from '../lib/constants';
+import { COLORS, SUPABASE_URL, SUPABASE_ANON_KEY, ADMOB } from '../lib/constants';
 import AdBanner from '../components/AdBanner';
 import { useCoinStore } from '../store/useCoinStore';
 import { useOnboardingStore } from '../store/useOnboardingStore';
 import {
   RewardedAd, RewardedAdEventType, AdEventType, TestIds,
 } from 'react-native-google-mobile-ads';
-import { ADMOB } from '../lib/constants';
 
 const IS_DEV = __DEV__;
 const REWARDED_ID = IS_DEV
@@ -141,36 +140,22 @@ export default function NegociacaoScreen() {
   }
 
   async function callClaude(msgs: Message[]): Promise<string> {
-    if (!CLAUDE_API_KEY) {
-      // Fallback: respostas simuladas quando não há API key
-      const responses = [
-        'Entendo seu ponto. Mas preciso ver dados concretos que justifiquem esse aumento. Quais resultados você trouxe para a empresa nos últimos meses?',
-        'Reconheço sua dedicação, mas o orçamento está apertado. O que te diferencia dos outros profissionais da equipe?',
-        'Interessante. E como você planeja agregar ainda mais valor à equipe se conseguir essa promoção?',
-        'Vou considerar seus argumentos. Preciso alinhar com o RH e a diretoria. Tem mais algum ponto que gostaria de destacar?',
-        'Ok, obrigado pela conversa. Vou avaliar com cuidado e te dou um retorno na próxima semana.',
-      ];
-      await new Promise(r => setTimeout(r, 1500));
-      return responses[Math.min(turnCount, responses.length - 1)];
-    }
-
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/claude-proxy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': CLAUDE_API_KEY,
-          'anthropic-version': '2023-06-01',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 300,
           system: msgs[0]?.content ?? '',
           messages: msgs.slice(1).map(m => ({ role: m.role, content: m.content })),
+          max_tokens: 300,
         }),
       });
       const data = await res.json();
-      return data.content?.[0]?.text ?? 'Desculpe, não consegui processar sua mensagem.';
+      if (data.error) throw new Error(data.error);
+      return data.text ?? 'Desculpe, não consegui processar sua mensagem.';
     } catch {
       return 'Desculpe, houve um erro na conexão. Tente novamente.';
     }
@@ -234,17 +219,12 @@ export default function NegociacaoScreen() {
       setPhase('feedback');
       setLoading(true);
 
-      if (!CLAUDE_API_KEY) {
-        await new Promise(r => setTimeout(r, 1500));
-        setFeedback(`📊 Nota: 7/10\n\n✅ Pontos fortes:\n- Boa iniciativa em pedir a reunião\n- Argumentos razoáveis\n\n⚠️ Pontos a melhorar:\n- Traga dados concretos de mercado\n- Mencione projetos específicos que liderou\n- Tenha uma contraproposta pronta\n\n💡 Dica: Antes da próxima negociação, use a análise salarial do QuantoGanha para ter dados reais do CAGED e argumentar com mais força.`);
-      } else {
-        const feedbackPrompt = getFeedbackPrompt(msgs, difficulty);
-        const res = await callClaude([
-          { role: 'system', content: 'Você é um coach de carreira especializado em negociação salarial no Brasil.' },
-          { role: 'user', content: feedbackPrompt },
-        ]);
-        setFeedback(res);
-      }
+      const feedbackPrompt = getFeedbackPrompt(msgs, difficulty);
+      const res = await callClaude([
+        { role: 'system', content: 'Você é um coach de carreira especializado em negociação salarial no Brasil.' },
+        { role: 'user', content: feedbackPrompt },
+      ]);
+      setFeedback(res);
       setLoading(false);
     });
   }

@@ -43,10 +43,6 @@ export const COLORS = {
 } as const;
 
 // ─── Multiplicadores de modelo ────────────────────────────────────────────────
-// ─── Claude API (negociação com IA) ─────────────────────────────────────────
-export const CLAUDE_API_KEY = ''; // Configure via backend proxy em produção
-
-// ─── Multiplicadores de modelo ────────────────────────────────────────────────
 export const MODEL_MULT: Record<string, number> = {
   presencial: 1.0,
   hibrido:    1.05,
