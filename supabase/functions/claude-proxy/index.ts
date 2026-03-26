@@ -1,5 +1,6 @@
 // supabase/functions/claude-proxy/index.ts
 // Proxy seguro para a API do Claude — protege a API key no servidor
+// Inclui rate limiting por IP e validação de input
 
 import "@supabase/functions-js/edge-runtime.d.ts";
 
@@ -11,35 +12,79 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Rate limiting simples por IP (em memória — reseta a cada cold start)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 20; // máximo de requests por janela
+const RATE_WINDOW_MS = 60_000; // janela de 1 minuto
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT;
+}
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
   if (!CLAUDE_API_KEY) {
-    return new Response(JSON.stringify({ error: "API key not configured" }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "API key not configured" }, 500);
+  }
+
+  // Rate limiting
+  const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    ?? req.headers.get("cf-connecting-ip")
+    ?? "unknown";
+
+  if (isRateLimited(clientIP)) {
+    return jsonResponse({ error: "Too many requests. Try again in a minute." }, 429);
   }
 
   try {
-    const { system, messages, max_tokens } = await req.json();
+    const body = await req.json();
+    const { system, messages, max_tokens } = body;
 
-    // Validações básicas
+    // Validação de messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return new Response(JSON.stringify({ error: "Messages required" }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Messages required" }, 400);
+    }
+
+    // Validação de cada mensagem
+    if (messages.length > 20) {
+      return jsonResponse({ error: "Too many messages (max 20)" }, 400);
+    }
+
+    for (const msg of messages) {
+      if (!msg.role || !["user", "assistant"].includes(msg.role)) {
+        return jsonResponse({ error: "Invalid message role" }, 400);
+      }
+      if (typeof msg.content !== "string" || msg.content.length > 2000) {
+        return jsonResponse({ error: "Message content too long (max 2000 chars)" }, 400);
+      }
+    }
+
+    // Validação do system prompt
+    if (system && (typeof system !== "string" || system.length > 2000)) {
+      return jsonResponse({ error: "System prompt too long (max 2000 chars)" }, 400);
     }
 
     // Limita tokens para evitar abuso
@@ -63,31 +108,15 @@ Deno.serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Claude API error:", data);
-      return new Response(
-        JSON.stringify({ error: "Claude API error", detail: data.error?.message ?? "Unknown" }),
-        {
-          status: response.status,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        }
-      );
+      console.error("Claude API error:", JSON.stringify(data));
+      return jsonResponse({ error: "AI service unavailable" }, 502);
     }
 
-    // Retorna apenas o texto da resposta (não expõe metadados da API)
     const text = data.content?.[0]?.text ?? "";
 
-    return new Response(
-      JSON.stringify({ text }),
-      { headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ text });
   } catch (err) {
     console.error("Proxy error:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse({ error: "Internal server error" }, 500);
   }
 });

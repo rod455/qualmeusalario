@@ -140,6 +140,8 @@ export default function NegociacaoScreen() {
   }
 
   async function callClaude(msgs: Message[]): Promise<string> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/claude-proxy`, {
         method: 'POST',
@@ -152,12 +154,16 @@ export default function NegociacaoScreen() {
           messages: msgs.slice(1).map(m => ({ role: m.role, content: m.content })),
           max_tokens: 300,
         }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       return data.text ?? 'Desculpe, não consegui processar sua mensagem.';
-    } catch {
+    } catch (e: any) {
+      if (e?.name === 'AbortError') return 'A resposta demorou demais. Tente novamente.';
       return 'Desculpe, houve um erro na conexão. Tente novamente.';
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

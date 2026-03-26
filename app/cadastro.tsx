@@ -78,7 +78,7 @@ export default function CadastroScreen() {
         await setupPushNotifications();
       }
       Alert.alert('✅ Conta criada!', 'Bem-vindo ao Quanto Ganha!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/resultado') },
+        { text: 'OK', onPress: () => router.replace('/') },
       ]);
     } catch {
       setErro('Erro de conexão. Tente novamente.');
@@ -109,7 +109,7 @@ export default function CadastroScreen() {
         // 🆕 Registra push token após login
         await setupPushNotifications();
       }
-      router.replace('/(tabs)/resultado');
+      router.replace('/');
     } catch {
       setErro('Erro de conexão. Tente novamente.');
     } finally {

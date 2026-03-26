@@ -48,7 +48,7 @@ const AREA_SEARCH_TERMS: Record<string, string> = {
 function dedupeVagas(vagas: Vaga[]): Vaga[] {
   const seen = new Set<string>();
   return vagas.filter(v => {
-    const key = v.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+    const key = `${v.title}-${v.company}`.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 80);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -72,8 +72,16 @@ export default function VagasScreen() {
     try {
       const searchTerm = AREA_SEARCH_TERMS[selectedArea] || 'emprego';
       const query = encodeURIComponent(searchTerm);
-      const url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=25&what=${query}&content-type=application/json`;
-      const res = await fetch(url);
+      const url = `https://api.adzuna.com/v1/api/jobs/br/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=25&what=${query}`;
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        console.log('Adzuna API error:', res.status);
+        return;
+      }
+
       const data = await res.json();
 
       if (data.results) {
@@ -85,6 +93,7 @@ export default function VagasScreen() {
           salary_min: r.salary_min ? Math.round(r.salary_min) : undefined,
           salary_max: r.salary_max ? Math.round(r.salary_max) : undefined,
           url: r.redirect_url ?? '',
+          workType: r.contract_type ?? '',
         }));
         setVagas(dedupeVagas(mapped));
       }
@@ -96,9 +105,17 @@ export default function VagasScreen() {
   }
 
   const filteredVagas = vagas.filter(v => {
+    // Filtro de salário
     const range = SALARY_RANGES[selectedSalary];
     const sal = v.salary_max ?? v.salary_min ?? 0;
     if (sal > 0 && (sal < range.min || sal > range.max)) return false;
+    // Filtro de tipo de trabalho
+    if (selectedWork !== 'Todos' && v.workType) {
+      const norm = v.workType.toLowerCase();
+      if (selectedWork === 'Remoto' && !norm.includes('remot') && !norm.includes('home')) return false;
+      if (selectedWork === 'Presencial' && (norm.includes('remot') || norm.includes('home') || norm.includes('híbrid') || norm.includes('hybrid'))) return false;
+      if (selectedWork === 'Híbrido' && !norm.includes('híbrid') && !norm.includes('hybrid')) return false;
+    }
     return true;
   });
 
@@ -134,7 +151,10 @@ export default function VagasScreen() {
               <Text style={vs.detailCompany}>🏢 {item.company}</Text>
               <Text style={vs.detailLocation}>📍 {item.location}</Text>
             </View>
-            <TouchableOpacity style={vs.btnOpen} onPress={() => item.url && Linking.openURL(item.url)}>
+            <TouchableOpacity style={vs.btnOpen} onPress={() => {
+              if (!item.url) return;
+              Linking.openURL(item.url).catch(err => console.log('Erro ao abrir link:', err));
+            }}>
               <Text style={vs.btnOpenTxt}>Ver vaga completa →</Text>
             </TouchableOpacity>
           </View>
