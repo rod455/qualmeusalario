@@ -141,7 +141,7 @@ export default function RewardScreen() {
 
   function onAdDone() {
     clearInterval(intervalRef.current);
-    router.replace('/(tabs)/resultado');
+    router.replace('/resultado');
   }
 
   const ab = result.diff >= 0;

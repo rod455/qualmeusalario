@@ -1,18 +1,18 @@
 // app/_layout.tsx
-// Layout raiz — splash animada customizada + app open ad + push
-// Fix: logo 280dp (grande), sem texto duplicado (logo já tem o nome)
+// Layout raiz — splash animada + app open ad + stack navigation (sem tabs)
 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View, Text } from 'react-native';
-import { Slot, router, usePathname } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { initAppOpenAd } from '../lib/appOpenAd';
 import {
   setupPushNotifications,
   addNotificationListeners,
 } from '../lib/notifications';
-import { logScreenView, logPushOpened } from '../lib/analytics';
+import { logScreenView } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
+import { useCoinStore } from '../store/useCoinStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,43 +28,29 @@ export default function RootLayout() {
   }, [pathname]);
 
   useEffect(() => {
-    // Esconde splash nativa imediatamente — a customizada assume
     SplashScreen.hideAsync();
-
     initAppOpenAd();
     initPushIfLoggedIn();
+    useCoinStore.getState().loadCoins();
 
     const cleanupListeners = addNotificationListeners(
       (notification) => {
         console.log('Notificação recebida:', notification.request.content.title);
       },
-      (response) => {
-        const data = response.notification.request.content.data;
-        const targetScreen = data?.screen as string | undefined;
-        logPushOpened(targetScreen);
-        if (targetScreen) {
-          try { router.push(targetScreen); } catch { router.push('/(tabs)/resultado'); }
-        }
-      },
+      () => {},
     );
 
     // ─── Animação de entrada ───
-    // Logo aparece com spring (bounce in)
     Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 6,
-      tension: 40,
-      useNativeDriver: true,
+      toValue: 1, friction: 6, tension: 40, useNativeDriver: true,
     }).start();
 
-    // "Preparando seus dados..." aparece após 600ms
     const dotsTimer = setTimeout(() => {
       Animated.timing(dotsOpacity, {
         toValue: 1, duration: 400, useNativeDriver: true,
       }).start();
     }, 600);
 
-    // Pulso suave (simula carregamento / vibração)
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(scaleAnim, { toValue: 1.05, duration: 500, useNativeDriver: true }),
@@ -75,15 +61,12 @@ export default function RootLayout() {
 
     const pulseTimer = setTimeout(() => pulse.start(), 400);
 
-    // Fade out após 2.5s
     const exitTimer = setTimeout(() => {
       pulse.stop();
       Animated.parallel([
         Animated.timing(scaleAnim, { toValue: 1.12, duration: 300, useNativeDriver: true }),
         Animated.timing(opacityAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
-      ]).start(() => {
-        setSplashDone(true);
-      });
+      ]).start(() => setSplashDone(true));
     }, 2500);
 
     return () => {
@@ -97,7 +80,19 @@ export default function RootLayout() {
 
   return (
     <View style={s.root}>
-      <Slot />
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="resultado" />
+        <Stack.Screen name="vagas" />
+        <Stack.Screen name="negociacao" />
+        <Stack.Screen name="evolucao" />
+        <Stack.Screen name="ranking" />
+        <Stack.Screen name="compartilhar" />
+        <Stack.Screen name="calculadora" />
+        <Stack.Screen name="faq" />
+        <Stack.Screen name="cadastro" />
+      </Stack>
       {!splashDone && (
         <Animated.View style={[s.overlay, { opacity: opacityAnim }]}>
           <Animated.Image
@@ -122,7 +117,7 @@ async function initPushIfLoggedIn() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B1838' },
+  root:    { flex: 1, backgroundColor: '#0B1838' },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#0B1838',
@@ -131,14 +126,10 @@ const s = StyleSheet.create({
     zIndex: 999,
   },
   logo: {
-    width: 280,
-    height: 280,
-    borderRadius: 56,
+    width: 280, height: 280, borderRadius: 56,
   },
   loadingText: {
-    marginTop: 32,
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.35)',
-    fontWeight: '500',
+    marginTop: 32, fontSize: 15,
+    color: 'rgba(255,255,255,0.35)', fontWeight: '500',
   },
 });
