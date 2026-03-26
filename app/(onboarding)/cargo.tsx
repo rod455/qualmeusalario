@@ -67,6 +67,9 @@ export default function CargoScreen() {
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
 
       <View style={s.topbar}>
+        <TouchableOpacity onPress={() => router.replace('/')} style={s.backBtn}>
+          <Text style={s.backTxt}>‹</Text>
+        </TouchableOpacity>
         <View style={s.logoRow}>
           <Image
             source={require('../../assets/images/icon.png')}
@@ -168,6 +171,8 @@ export default function CargoScreen() {
 const s = StyleSheet.create({
   safe:         { flex:1, backgroundColor:COLORS.dark },
   topbar:       { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:20, paddingTop:14, paddingBottom:10 },
+  backBtn:      { width:32, height:32, borderRadius:16, backgroundColor:'rgba(255,255,255,0.07)', alignItems:'center', justifyContent:'center' },
+  backTxt:      { fontSize:20, color:'rgba(255,255,255,0.6)', lineHeight:24 },
   logoRow:      { flexDirection:'row', alignItems:'center', gap:8 },
   logoImg:      { width:28, height:28, borderRadius:7 },
   logoName:     { fontSize:14, fontWeight:'700', color:'#fff' },

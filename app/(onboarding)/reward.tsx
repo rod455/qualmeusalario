@@ -212,7 +212,7 @@ export default function RewardScreen() {
       </View>
 
       {/* CTA fallback — caso o ad não carregue, mostra botão após 15s */}
-      {secsLeft <= 15 && (
+      {secsLeft <= 25 && (
         <View style={s.ctaWrap}>
           <TouchableOpacity style={s.ctaBtn} onPress={onAdDone}>
             <Text style={s.ctaBtnTxt}>Ver resultado agora →</Text>

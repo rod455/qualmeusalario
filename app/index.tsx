@@ -1,5 +1,6 @@
 // app/index.tsx
 // Home — Grid com 8 funcionalidades principais
+// Cards que precisam de análise prévia mostram indicação sutil
 
 import { useRef, useEffect } from 'react';
 import {
@@ -10,24 +11,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { COLORS } from '../lib/constants';
 import AdBanner from '../components/AdBanner';
+import { useOnboardingStore } from '../store/useOnboardingStore';
 
 const { width } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_WIDTH = (width - 24 * 2 - CARD_GAP) / 2;
 
 const FEATURES = [
-  { key: 'vagas',        icon: '💼', title: 'Ver vagas que\npagam mais',        color: COLORS.secondary, route: '/vagas' },
-  { key: 'salario',      icon: '📊', title: 'Descobrir meu\nsalário de mercado', color: COLORS.primary,   route: '/(onboarding)/cargo' },
-  { key: 'negociacao',   icon: '🎯', title: 'Treinar\nnegociação com IA',       color: COLORS.success,   route: '/negociacao' },
-  { key: 'evolucao',     icon: '📈', title: 'Acompanhar\nevolução do mercado',   color: COLORS.orange,    route: '/evolucao' },
-  { key: 'ranking',      icon: '🏆', title: 'Ranking cargos\nmais bem pagos',    color: COLORS.warning,   route: '/ranking' },
-  { key: 'compartilhar', icon: '🎬', title: 'Compartilhar\nmeu resultado',       color: '#C060E0',        route: '/compartilhar' },
-  { key: 'calculadora',  icon: '💰', title: 'Calculadora de\nsalário líquido',   color: COLORS.success,   route: '/calculadora' },
-  { key: 'faq',          icon: '❓', title: 'Dúvidas\nFrequentes',               color: COLORS.secondary, route: '/faq' },
+  { key: 'salario',      icon: '📊', title: 'Descobrir meu\nsalário de mercado', color: COLORS.primary,   route: '/(onboarding)/cargo', needsAnalysis: false, badge: 'Comece aqui' },
+  { key: 'vagas',        icon: '💼', title: 'Ver vagas que\npagam mais',        color: COLORS.secondary, route: '/vagas',               needsAnalysis: false },
+  { key: 'negociacao',   icon: '🎯', title: 'Treinar\nnegociação com IA',       color: COLORS.success,   route: '/negociacao',          needsAnalysis: false },
+  { key: 'evolucao',     icon: '📈', title: 'Acompanhar\nevolução do mercado',   color: COLORS.orange,    route: '/evolucao',            needsAnalysis: false },
+  { key: 'ranking',      icon: '🏆', title: 'Ranking cargos\nmais bem pagos',    color: COLORS.warning,   route: '/ranking',             needsAnalysis: false },
+  { key: 'compartilhar', icon: '🎬', title: 'Compartilhar\nmeu resultado',       color: '#C060E0',        route: '/compartilhar',        needsAnalysis: true },
+  { key: 'calculadora',  icon: '💰', title: 'Calculadora de\nsalário líquido',   color: COLORS.success,   route: '/calculadora',         needsAnalysis: false },
+  { key: 'faq',          icon: '❓', title: 'Dúvidas\nFrequentes',               color: COLORS.secondary, route: '/faq',                 needsAnalysis: false },
 ] as const;
 
 export default function HomeScreen() {
   const anims = useRef(FEATURES.map(() => new Animated.Value(0))).current;
+  const hasResult = useOnboardingStore(s => !!s.result);
 
   useEffect(() => {
     Animated.stagger(60, anims.map(a =>
@@ -58,6 +61,8 @@ export default function HomeScreen() {
       >
         {FEATURES.map((f, i) => {
           const anim = anims[i];
+          const locked = f.needsAnalysis && !hasResult;
+
           return (
             <Animated.View
               key={f.key}
@@ -72,16 +77,30 @@ export default function HomeScreen() {
               ]}
             >
               <TouchableOpacity
-                style={[s.card, { borderColor: f.color + '30' }]}
+                style={[s.card, { borderColor: f.color + '30' }, locked && s.cardLocked]}
                 activeOpacity={0.8}
-                onPress={() => router.push(f.route as any)}
+                onPress={() => {
+                  if (locked) {
+                    router.push('/(onboarding)/cargo' as any);
+                  } else {
+                    router.push(f.route as any);
+                  }
+                }}
               >
+                {f.badge && !hasResult && (
+                  <View style={[s.badgeWrap, { backgroundColor: f.color + '25' }]}>
+                    <Text style={[s.badgeTxt, { color: f.color }]}>{f.badge}</Text>
+                  </View>
+                )}
                 <View style={[s.iconWrap, { backgroundColor: f.color + '18' }]}>
                   <Text style={s.icon}>{f.icon}</Text>
                 </View>
                 <Text style={s.cardTitle}>{f.title}</Text>
+                {locked && (
+                  <Text style={s.lockedHint}>Faça sua análise primeiro</Text>
+                )}
                 <View style={[s.cardArrow, { backgroundColor: f.color + '20' }]}>
-                  <Text style={[s.arrowTxt, { color: f.color }]}>→</Text>
+                  <Text style={[s.arrowTxt, { color: f.color }]}>{locked ? '🔒' : '→'}</Text>
                 </View>
               </TouchableOpacity>
             </Animated.View>
@@ -110,6 +129,22 @@ const s = StyleSheet.create({
     minHeight: 140,
     justifyContent: 'space-between',
   },
+  cardLocked: {
+    opacity: 0.6,
+  },
+  badgeWrap: {
+    position: 'absolute',
+    top: -8,
+    right: 12,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  badgeTxt: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
   iconWrap: {
     width: 44,
     height: 44,
@@ -120,6 +155,7 @@ const s = StyleSheet.create({
   },
   icon:       { fontSize: 22 },
   cardTitle:  { fontSize: 14, fontWeight: '700', color: '#fff', lineHeight: 20, letterSpacing: -0.2, marginBottom: 10 },
+  lockedHint: { fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 6 },
   cardArrow: {
     alignSelf: 'flex-end',
     width: 28,

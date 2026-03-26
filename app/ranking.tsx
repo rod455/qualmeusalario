@@ -2,7 +2,7 @@
 // Ranking dos cargos mais bem pagos — por categorias
 // Interstitial ao voltar para home
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, FlatList,
 } from 'react-native';
@@ -66,12 +66,18 @@ function getRankingData(category: RankingCategory) {
 
 export default function RankingScreen() {
   const [activeCategory, setActiveCategory] = useState<RankingCategory>('top_pagos');
+  const adShownRef = useRef(false);
   const { showAdThenDo } = useInterstitial(['carreira', 'salario', 'emprego']);
 
   const data = getRankingData(activeCategory);
 
   function handleBack() {
-    showAdThenDo(() => router.replace('/'));
+    if (!adShownRef.current) {
+      adShownRef.current = true;
+      showAdThenDo(() => router.replace('/'));
+    } else {
+      router.replace('/');
+    }
   }
 
   return (

@@ -84,7 +84,8 @@ export default function EvolucaoScreen() {
   const [unlocked, setUnlocked] = useState(false);
   const { showAdThenDo } = useInterstitial(['mercado trabalho', 'salario', 'carreira']);
 
-  const selectedArea = area && EVOLUCAO_DATA[area] ? area : DEFAULT_AREA;
+  const isDefaulting = !area || !EVOLUCAO_DATA[area];
+  const selectedArea = isDefaulting ? DEFAULT_AREA : area;
   const data = EVOLUCAO_DATA[selectedArea];
   const maxVal = Math.max(...data.valores) * 1.05;
 
@@ -134,6 +135,13 @@ export default function EvolucaoScreen() {
       ) : (
         /* ─── ESTADO DESBLOQUEADO ─── */
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+          {/* Aviso quando usando área padrão */}
+          {isDefaulting && (
+            <TouchableOpacity style={s.defaultNotice} onPress={() => router.push('/(onboarding)/cargo' as any)}>
+              <Text style={s.defaultNoticeTxt}>📊 Mostrando dados de Tecnologia. Faça sua análise salarial para ver sua área →</Text>
+            </TouchableOpacity>
+          )}
+
           {/* Resumo */}
           <View style={s.summaryCard}>
             <Text style={s.summaryArea}>{selectedArea}</Text>
@@ -230,6 +238,8 @@ const s = StyleSheet.create({
 
   // Unlocked
   content:        { paddingHorizontal: 20 },
+  defaultNotice:  { backgroundColor: 'rgba(245,168,32,0.1)', borderWidth: 1, borderColor: 'rgba(245,168,32,0.2)', borderRadius: 14, padding: 12, marginBottom: 16 },
+  defaultNoticeTxt: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
   summaryCard:    { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 20, padding: 16, marginBottom: 20 },
   summaryArea:    { fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 12, textAlign: 'center' },
   summaryRow:     { flexDirection: 'row', alignItems: 'center' },

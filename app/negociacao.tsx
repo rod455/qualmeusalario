@@ -174,6 +174,17 @@ export default function NegociacaoScreen() {
       return;
     }
 
+    Alert.alert(
+      `Iniciar simulação ${DIFF_LABEL[diff]}?`,
+      `Isso vai custar ${cost} moeda${cost > 1 ? 's' : ''}.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Iniciar', onPress: () => doStartSimulation(diff, cost) },
+      ]
+    );
+  }
+
+  async function doStartSimulation(diff: Difficulty, cost: number) {
     if (!spendCoins(cost)) return;
 
     setDifficulty(diff);
@@ -345,7 +356,16 @@ export default function NegociacaoScreen() {
       <AdBanner />
 
       <View style={s.chatHeader}>
-        <TouchableOpacity onPress={() => { setPhase('select'); setMessages([]); }}>
+        <TouchableOpacity onPress={() => {
+          if (turnCount > 0) {
+            Alert.alert('Sair da simulação?', 'Sua conversa será perdida.', [
+              { text: 'Continuar', style: 'cancel' },
+              { text: 'Sair', style: 'destructive', onPress: () => { setPhase('select'); setMessages([]); } },
+            ]);
+          } else {
+            setPhase('select'); setMessages([]);
+          }
+        }}>
           <Text style={s.backTxt}>← Voltar</Text>
         </TouchableOpacity>
         <View style={s.chatHeaderRight}>

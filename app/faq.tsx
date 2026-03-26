@@ -1,7 +1,7 @@
 // app/faq.tsx
 // Dúvidas frequentes sobre CLT — interstitial ao voltar
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView,
 } from 'react-native';
@@ -93,6 +93,7 @@ const FAQ_DATA: FAQItem[] = [
 
 export default function FAQScreen() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const adShownRef = useRef(false);
   const { showAdThenDo } = useInterstitial(['CLT', 'direitos trabalhistas', 'emprego']);
 
   function toggle(index: number) {
@@ -104,7 +105,12 @@ export default function FAQScreen() {
   }
 
   function handleBack() {
-    showAdThenDo(() => router.replace('/'));
+    if (!adShownRef.current) {
+      adShownRef.current = true;
+      showAdThenDo(() => router.replace('/'));
+    } else {
+      router.replace('/');
+    }
   }
 
   return (
