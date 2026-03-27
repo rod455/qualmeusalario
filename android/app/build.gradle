@@ -91,8 +91,8 @@ android {
         applicationId 'com.quantoganha.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.1.0"
+        versionCode 10
+        versionName "2.1.0"
     }
     signingConfigs {
         debug {
@@ -102,10 +102,10 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('../../upload-key.jks')
-            storePassword 'quantoganha2025'
+            storeFile file('upload-key.jks')
+            storePassword 'QuantoGanha2026'
             keyAlias 'upload'
-            keyPassword 'quantoganha2025'
+            keyPassword 'QuantoGanha2026'
         }
     }
     buildTypes {
