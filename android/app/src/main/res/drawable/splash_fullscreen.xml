@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash screen fullscreen: fundo navy + logo centralizada grande -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background navy -->
+    <item android:drawable="@color/splashscreen_background" />
+    <!-- Logo centralizada (tamanho generoso) -->
+    <item
+        android:gravity="center"
+        android:width="180dp"
+        android:height="180dp"
+        android:drawable="@drawable/splashscreen_logo" />
+</layer-list>
