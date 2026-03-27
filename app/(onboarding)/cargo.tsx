@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { COLORS } from '../../lib/constants';
 import AdBanner from '../../components/AdBanner';
+import { logCargoSelected } from '../../lib/analytics';
 
 const CAREERS = [
   { area: 'Tecnologia', items: ['Desenvolvedor(a) Frontend Junior','Desenvolvedor(a) Frontend Pleno','Desenvolvedor(a) Frontend Senior','Desenvolvedor(a) Backend Junior','Desenvolvedor(a) Backend Pleno','Desenvolvedor(a) Backend Senior','Desenvolvedor(a) Full Stack Pleno','Desenvolvedor(a) Full Stack Senior','Desenvolvedor(a) Mobile','Engenheiro(a) de Software','Tech Lead','Arquiteto(a) de Software','DevOps Engineer','SRE','Engenheiro(a) de Dados Pleno','Engenheiro(a) de Dados Senior','Analista de Dados','Cientista de Dados','Analista de BI','QA Engineer','Scrum Master','Agile Coach','Product Manager (PM)','Product Owner (PO)','CTO','Head de Tecnologia'] },
@@ -59,6 +60,7 @@ export default function CargoScreen() {
 
   function pick(cargo: string, area: string) {
     setCargo(cargo, area);
+    logCargoSelected(cargo, area);
     router.push('/(onboarding)/localizacao');
   }
 

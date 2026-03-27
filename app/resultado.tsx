@@ -11,6 +11,7 @@ import { useOnboardingStore } from '../store/useOnboardingStore';
 import { fmtBRL } from '../lib/salary';
 import { COLORS } from '../lib/constants';
 import AdBanner from '../components/AdBanner';
+import { logShare, logCtaClick } from '../lib/analytics';
 
 function Bar({ label, myVal, mktVal, max }: { label: string; myVal: number; mktVal: number; max: number }) {
   const myW  = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,7 @@ export default function ResultadoScreen() {
   ];
 
   const handleShare = async () => {
+    logShare(result.cargo);
     const dir = ab ? 'acima' : 'abaixo';
     await Share.share({
       message: `Meu salário está ${Math.abs(result.diff)}% ${dir} do mercado para ${result.cargo.split('(')[0].trim()} em ${result.cidade.nome}.\n\nCalcula o seu → quantoganha.com.br`,

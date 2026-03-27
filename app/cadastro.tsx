@@ -9,6 +9,7 @@ import { COLORS } from '../lib/constants';
 import { supabase } from '../lib/supabase';
 import { useOnboardingStore } from '../store/useOnboardingStore';
 import { setupPushNotifications } from '../lib/notifications';
+import { logAuthEvent } from '../lib/analytics';
 
 export default function CadastroScreen() {
   const [nome, setNome]           = useState('');
@@ -74,8 +75,8 @@ export default function CadastroScreen() {
       }
       if (data.user) {
         await salvarAnalise(data.user.id);
-        // 🆕 Registra push token após criação de conta
         await setupPushNotifications();
+        logAuthEvent('cadastro');
       }
       Alert.alert('✅ Conta criada!', 'Bem-vindo ao Quanto Ganha!', [
         { text: 'OK', onPress: () => router.replace('/') },
@@ -106,8 +107,8 @@ export default function CadastroScreen() {
       }
       if (data.user) {
         await salvarAnalise(data.user.id);
-        // 🆕 Registra push token após login
         await setupPushNotifications();
+        logAuthEvent('login');
       }
       router.replace('/');
     } catch {

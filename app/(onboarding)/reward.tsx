@@ -16,6 +16,7 @@ import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { computeSalaryResult, fmtBRL } from '../../lib/salary';
 import { COLORS, ADMOB } from '../../lib/constants';
 import { saveAnalysis } from '../../lib/supabase';
+import { logAnaliseCompleta, setUserProperties } from '../../lib/analytics';
 
 const IS_DEV = __DEV__;
 const AD_UNIT_ID = IS_DEV
@@ -56,6 +57,16 @@ export default function RewardScreen() {
 
   useEffect(() => {
     store.setResult(result);
+    logAnaliseCompleta({
+      cargo: result.cargo, cidade: result.cidade.nome,
+      uf: result.cidade.uf, diff_pct: result.diff,
+      acima: result.diff >= 0,
+    });
+    setUserProperties({
+      cargo: result.cargo, cidade: result.cidade.nome,
+      uf: result.cidade.uf,
+      posicao_mercado: result.diff >= 0 ? 'acima' : 'abaixo',
+    });
     saveAnalysis({
       cargo: result.cargo, area: result.area ?? '',
       cidade: result.cidade.nome, uf: result.cidade.uf,

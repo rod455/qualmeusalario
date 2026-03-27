@@ -13,6 +13,7 @@ import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { COLORS } from '../../lib/constants';
 import { useInterstitial } from '../../lib/useInterstitial';
 import AdBanner from '../../components/AdBanner';
+import { logCidadeSelected } from '../../lib/analytics';
 
 const CIDADES = [
   {nome:'São Paulo',           uf:'SP', mult:1.00},
@@ -68,6 +69,7 @@ export default function LocalizacaoScreen() {
     setCidade(c);
     setQuery(`${c.nome}, ${c.uf}`);
     setFocused(false);
+    logCidadeSelected(c.nome, c.uf);
   };
 
   const updateYears = (val: number) => {

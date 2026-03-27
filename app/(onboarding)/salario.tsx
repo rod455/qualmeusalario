@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
 import { COLORS } from '../../lib/constants';
 import AdBanner from '../../components/AdBanner';
+import { logSalarioInformado } from '../../lib/analytics';
 
 type ExtraKey = 'com' | 'plr' | 'bon' | 'vr' | 'out';
 
@@ -48,7 +49,7 @@ export default function SalarioScreen() {
 
   const goNext = () => {
     setExtras({ com:getNum('com'), plr:getNum('plr'), bon:getNum('bon'), vr:getNum('vr'), out:getNum('out') });
-    // Vai direto para tela de reward (ad + countdown)
+    logSalarioInformado(salario, useOnboardingStore.getState().workModel);
     router.push('/(onboarding)/reward');
   };
 
