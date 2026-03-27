@@ -24,3 +24,7 @@ android/app/build/
 
 expo-env.d.ts
 # @end expo-cli
+# Keystores
+*.jks
+*.keystore
+upload-key*
