@@ -1,10 +1,10 @@
 // app/ranking.tsx
-// Ranking dos cargos mais bem pagos — por categorias
+// Ranking salarial filtrado por Área e Senioridade
 // Interstitial ao voltar para home
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, FlatList,
+  View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -13,63 +13,117 @@ import AdBanner from '../components/AdBanner';
 import { useInterstitial } from '../lib/useInterstitial';
 import { BASE_SALARIES } from '../lib/salary';
 
-type RankingCategory = 'top_pagos' | 'maior_aumento' | 'maior_queda' | 'demanda';
+// ─── Áreas ──────────────────────────────────────────────────────────────────
 
-const CATEGORIES: { key: RankingCategory; label: string; icon: string }[] = [
-  { key: 'top_pagos', label: 'Mais bem pagos', icon: '💰' },
-  { key: 'maior_aumento', label: 'Maior aumento', icon: '📈' },
-  { key: 'maior_queda', label: 'Maior queda', icon: '📉' },
-  { key: 'demanda', label: 'Mais procurados', icon: '🔥' },
-];
+const AREAS = [
+  'Todas', 'Tecnologia', 'Design & UX', 'Marketing', 'Vendas & Comercial',
+  'Finanças', 'RH & People', 'Engenharia', 'Saúde', 'Educação', 'Jurídico', 'Operações',
+] as const;
 
-// Dados derivados do BASE_SALARIES + simulação de tendências CAGED
-const allCargos = Object.entries(BASE_SALARIES).map(([cargo, salario]) => ({ cargo, salario }));
+type Area = typeof AREAS[number];
 
-// Simula variação anual baseada no mercado brasileiro
-function getVariacao(cargo: string): number {
-  const hash = cargo.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  // Tecnologia e dados tendem a crescer mais; outros setores variam
-  if (cargo.includes('Dados') || cargo.includes('Software') || cargo.includes('Tech') || cargo.includes('SRE') || cargo.includes('DevOps')) return 8 + (hash % 7);
-  if (cargo.includes('IA') || cargo.includes('Lead') || cargo.includes('Arquiteto')) return 7 + (hash % 6);
-  if (cargo.includes('CTO') || cargo.includes('CFO') || cargo.includes('CMO') || cargo.includes('COO')) return 3 + (hash % 4);
-  if (cargo.includes('Professor') || cargo.includes('Educação')) return -(hash % 3);
-  if (cargo.includes('Designer')) return 5 + (hash % 4);
-  return -2 + (hash % 12);
-}
+const AREA_KEYWORDS: Record<Exclude<Area, 'Todas'>, string[]> = {
+  'Tecnologia': [
+    'Desenvolvedor', 'Engenheiro de Software', 'Engenheiro(a) de Software',
+    'Tech Lead', 'Arquiteto', 'DevOps', 'SRE',
+    'Engenheiro(a) de Dados', 'Engenheiro de Dados',
+    'Analista de Dados', 'Cientista', 'Analista de BI',
+    'QA', 'Scrum', 'Agile', 'Product',
+    'CTO', 'Head de Tecnologia',
+  ],
+  'Design & UX': [
+    'Designer UX', 'Designer Gráfico', 'UX Researcher', 'Motion Designer',
+    'Web Designer', 'Head de Design',
+  ],
+  'Marketing': [
+    'Marketing', 'Growth', 'SEO', 'Mídia Paga', 'Social Media',
+    'Copywriter', 'CMO',
+  ],
+  'Vendas & Comercial': [
+    'SDR', 'BDR', 'Executivo', 'Key Account', 'Gerente de Vendas',
+    'Diretor(a) Comercial', 'Diretor Comercial', 'CSO', 'Closer',
+    'Inside Sales', 'Customer Success',
+  ],
+  'Finanças': [
+    'Financeiro', 'Controller', 'CFO', 'Contador', 'FP&A', 'Investimentos',
+  ],
+  'RH & People': [
+    'Analista de RH', 'HRBP', 'People', 'Gerente de RH', 'CHRO',
+  ],
+  'Engenharia': [
+    'Engenheiro(a) Civil', 'Engenheiro Civil',
+    'Mecânico', 'Elétrico', 'Produção', 'Químico', 'Ambiental',
+  ],
+  'Saúde': [
+    'Médico', 'Enfermeiro', 'Psicólogo', 'Fisioterapeuta', 'Nutricionista', 'Dentista',
+  ],
+  'Educação': [
+    'Professor', 'Designer Instrucional',
+  ],
+  'Jurídico': [
+    'Advogado', 'Compliance', 'DPO',
+  ],
+  'Operações': [
+    'Analista de Operações', 'Gerente de Operações', 'COO', 'Gerente de Projetos',
+  ],
+};
 
-function getRankingData(category: RankingCategory) {
-  const withVariacao = allCargos.map(c => ({ ...c, variacao: getVariacao(c.cargo) }));
-
-  switch (category) {
-    case 'top_pagos':
-      return withVariacao.sort((a, b) => b.salario - a.salario).slice(0, 20);
-    case 'maior_aumento':
-      return withVariacao.sort((a, b) => b.variacao - a.variacao).slice(0, 20);
-    case 'maior_queda':
-      return withVariacao.filter(c => c.variacao < 0).sort((a, b) => a.variacao - b.variacao).slice(0, 15);
-    case 'demanda':
-      // Simula demanda: tech + dados + produto são os mais procurados
-      return withVariacao
-        .filter(c =>
-          c.cargo.includes('Desenvolvedor') || c.cargo.includes('Engenheiro(a) de Dados') ||
-          c.cargo.includes('Product') || c.cargo.includes('DevOps') || c.cargo.includes('QA') ||
-          c.cargo.includes('Full Stack') || c.cargo.includes('Mobile') || c.cargo.includes('Frontend') ||
-          c.cargo.includes('Backend') || c.cargo.includes('Analista de Dados') || c.cargo.includes('Growth') ||
-          c.cargo.includes('Cientista') || c.cargo.includes('SRE') || c.cargo.includes('BI')
-        )
-        .sort((a, b) => b.salario - a.salario)
-        .slice(0, 15);
-    default:
-      return withVariacao.slice(0, 20);
+function getArea(cargo: string): Area {
+  for (const [area, keywords] of Object.entries(AREA_KEYWORDS) as [Exclude<Area, 'Todas'>, string[]][]) {
+    for (const kw of keywords) {
+      if (cargo.includes(kw)) return area;
+    }
   }
+  return 'Todas';
 }
+
+// ─── Senioridade ────────────────────────────────────────────────────────────
+
+const SENIORIDADES = ['Todos', 'Junior', 'Pleno', 'Senior', 'C-Level'] as const;
+type Senioridade = typeof SENIORIDADES[number];
+
+const C_LEVEL_KEYWORDS = ['CTO', 'CFO', 'CMO', 'COO', 'CSO', 'CHRO', 'Head', 'Diretor', 'Gerente'];
+
+function getSenioridade(cargo: string): Senioridade | null {
+  if (/Junior|Jr\b/i.test(cargo)) return 'Junior';
+  if (/Pleno/i.test(cargo)) return 'Pleno';
+  if (/Senior|Sr\b/i.test(cargo)) return 'Senior';
+  for (const kw of C_LEVEL_KEYWORDS) {
+    if (cargo.includes(kw)) return 'C-Level';
+  }
+  return null; // show only when filter is "Todos"
+}
+
+// ─── Dados pré-processados ──────────────────────────────────────────────────
+
+const allCargos = Object.entries(BASE_SALARIES).map(([cargo, salario]) => ({
+  cargo,
+  salario,
+  area: getArea(cargo),
+  senioridade: getSenioridade(cargo),
+}));
+
+// ─── Componente ─────────────────────────────────────────────────────────────
 
 export default function RankingScreen() {
-  const [activeCategory, setActiveCategory] = useState<RankingCategory>('top_pagos');
+  const [selectedArea, setSelectedArea] = useState<Area>('Todas');
+  const [selectedSenioridade, setSelectedSenioridade] = useState<Senioridade>('Todos');
   const adShownRef = useRef(false);
   const { showAdThenDo } = useInterstitial(['carreira', 'salario', 'emprego']);
 
-  const data = getRankingData(activeCategory);
+  const data = useMemo(() => {
+    let filtered = allCargos;
+
+    if (selectedArea !== 'Todas') {
+      filtered = filtered.filter(c => c.area === selectedArea);
+    }
+
+    if (selectedSenioridade !== 'Todos') {
+      filtered = filtered.filter(c => c.senioridade === selectedSenioridade);
+    }
+
+    return filtered.sort((a, b) => b.salario - a.salario);
+  }, [selectedArea, selectedSenioridade]);
 
   function handleBack() {
     if (!adShownRef.current) {
@@ -93,26 +147,51 @@ export default function RankingScreen() {
         <Text style={s.headerSub}>Dados do CAGED — Atualizado 2025</Text>
       </View>
 
-      {/* Categorias */}
-      <FlatList
-        horizontal
-        data={CATEGORIES}
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.key}
-        contentContainerStyle={s.catRow}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[s.catChip, activeCategory === item.key && s.catChipActive]}
-            onPress={() => setActiveCategory(item.key)}
-          >
-            <Text style={s.catIcon}>{item.icon}</Text>
-            <Text style={[s.catTxt, activeCategory === item.key && s.catTxtActive]}>{item.label}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      {/* Área filter */}
+      <View style={s.filterSection}>
+        <Text style={s.filterLabel}>Área</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+          {AREAS.map(area => {
+            const active = selectedArea === area;
+            return (
+              <TouchableOpacity
+                key={area}
+                style={[s.chip, active && s.chipActive]}
+                onPress={() => setSelectedArea(area)}
+              >
+                <Text style={[s.chipTxt, active && s.chipTxtActive]}>{area}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Senioridade filter */}
+      <View style={s.filterSection}>
+        <Text style={s.filterLabel}>Senioridade</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+          {SENIORIDADES.map(sen => {
+            const active = selectedSenioridade === sen;
+            return (
+              <TouchableOpacity
+                key={sen}
+                style={[s.chip, active && s.chipActive]}
+                onPress={() => setSelectedSenioridade(sen)}
+              >
+                <Text style={[s.chipTxt, active && s.chipTxtActive]}>{sen}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* Lista */}
       <ScrollView contentContainerStyle={s.list} showsVerticalScrollIndicator={false}>
+        {data.length === 0 && (
+          <View style={s.emptyWrap}>
+            <Text style={s.emptyTxt}>Nenhum cargo encontrado para os filtros selecionados.</Text>
+          </View>
+        )}
         {data.map((item, i) => {
           const isTop3 = i < 3;
           const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
@@ -127,24 +206,16 @@ export default function RankingScreen() {
                   <Text style={s.rankSalario}>R$ {item.salario.toLocaleString('pt-BR')}/mês</Text>
                 </View>
               </View>
-              {activeCategory !== 'top_pagos' && activeCategory !== 'demanda' && (
-                <Text style={[s.rankVar, item.variacao >= 0 ? s.green : s.red]}>
-                  {item.variacao >= 0 ? '+' : ''}{item.variacao}%
-                </Text>
-              )}
             </View>
           );
         })}
-        {activeCategory === 'maior_queda' && data.length === 0 && (
-          <View style={s.emptyWrap}>
-            <Text style={s.emptyTxt}>Nenhum cargo com queda significativa identificado.</Text>
-          </View>
-        )}
         <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// ─── Estilos ────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   safe:            { flex: 1, backgroundColor: COLORS.dark },
@@ -152,12 +223,27 @@ const s = StyleSheet.create({
   backTxt:         { fontSize: 14, fontWeight: '600', color: COLORS.primary, marginBottom: 8 },
   headerTitle:     { fontSize: 22, fontWeight: '900', color: '#fff', letterSpacing: -0.5 },
   headerSub:       { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
-  catRow:          { paddingHorizontal: 16, gap: 8, paddingVertical: 10 },
-  catChip:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(255,255,255,0.04)' },
-  catChipActive:   { borderColor: COLORS.primary, backgroundColor: 'rgba(245,168,32,0.15)' },
-  catIcon:         { fontSize: 14 },
-  catTxt:          { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
-  catTxtActive:    { color: COLORS.primary },
+
+  // Filter rows
+  filterSection:   { paddingLeft: 20, marginBottom: 4 },
+  filterLabel:     { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.55)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.8 },
+  chipRow:         { gap: 8, paddingRight: 20, paddingBottom: 8 },
+  chip:            {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  chipActive:      {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary,
+  },
+  chipTxt:         { fontSize: 13, fontWeight: '700', color: '#ffffff' },
+  chipTxtActive:   { color: '#0B1838' },
+
+  // Ranking list
   list:            { paddingHorizontal: 16, paddingTop: 4, gap: 8 },
   rankCard:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 16, padding: 14 },
   rankCardTop:     { borderColor: 'rgba(245,168,32,0.2)', backgroundColor: 'rgba(245,168,32,0.06)' },
@@ -167,9 +253,6 @@ const s = StyleSheet.create({
   rankInfo:        { flex: 1 },
   rankCargo:       { fontSize: 14, fontWeight: '700', color: '#fff', marginBottom: 2 },
   rankSalario:     { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
-  rankVar:         { fontSize: 14, fontWeight: '800', marginLeft: 8 },
-  green:           { color: COLORS.success },
-  red:             { color: COLORS.danger },
   emptyWrap:       { padding: 32, alignItems: 'center' },
   emptyTxt:        { fontSize: 14, color: 'rgba(255,255,255,0.4)', textAlign: 'center' },
 });

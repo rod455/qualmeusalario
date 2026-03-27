@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { COLORS } from '../lib/constants';
 import AdBanner from '../components/AdBanner';
 import { useOnboardingStore } from '../store/useOnboardingStore';
+import { useAuth } from '../lib/useAuth';
 
 const { width } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -31,6 +32,7 @@ const FEATURES = [
 export default function HomeScreen() {
   const anims = useRef(FEATURES.map(() => new Animated.Value(0))).current;
   const hasResult = useOnboardingStore(s => !!s.result);
+  const { isLoggedIn, displayName, initials } = useAuth();
 
   useEffect(() => {
     Animated.stagger(60, anims.map(a =>
@@ -47,9 +49,21 @@ export default function HomeScreen() {
 
       {/* Header */}
       <View style={s.header}>
-        <View style={s.logoRow}>
-          <Image source={require('../assets/images/icon.png')} style={s.logoImg} resizeMode="contain" />
-          <Text style={s.logoName}>Quanto Ganha!</Text>
+        <View style={s.headerTop}>
+          <View style={s.logoRow}>
+            <Image source={require('../assets/images/icon.png')} style={s.logoImg} resizeMode="contain" />
+            <Text style={s.logoName}>Quanto Ganha!</Text>
+          </View>
+          {isLoggedIn ? (
+            <View style={s.userBadge}>
+              <View style={s.avatar}><Text style={s.avatarTxt}>{initials}</Text></View>
+              <Text style={s.userName} numberOfLines={1}>{displayName}</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={s.loginBtn} onPress={() => router.push('/cadastro')}>
+              <Text style={s.loginBtnTxt}>Entrar</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={s.headerSub}>O que você quer descobrir?</Text>
       </View>
@@ -115,7 +129,14 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   safe:       { flex: 1, backgroundColor: COLORS.dark },
   header:     { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 12 },
-  logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  headerTop:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  userBadge:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 999, paddingRight: 14, paddingLeft: 4, paddingVertical: 4 },
+  avatar:     { width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  avatarTxt:  { fontSize: 11, fontWeight: '800', color: COLORS.dark },
+  userName:   { fontSize: 12, fontWeight: '600', color: '#fff', maxWidth: 100 },
+  loginBtn:   { backgroundColor: 'rgba(245,168,32,0.15)', borderWidth: 1, borderColor: 'rgba(245,168,32,0.3)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
+  loginBtnTxt:{ fontSize: 12, fontWeight: '700', color: COLORS.primary },
   logoImg:    { width: 36, height: 36, borderRadius: 10 },
   logoName:   { fontSize: 18, fontWeight: '800', color: '#fff', letterSpacing: -0.4 },
   headerSub:  { fontSize: 14, color: 'rgba(255,255,255,0.4)' },

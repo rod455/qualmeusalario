@@ -2,16 +2,27 @@
 // Acompanhar evolução do mercado — blur + interstitial para desbloquear
 // Dados baseados no CAGED (tendências salariais reais por área)
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView,
+  View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { COLORS } from '../lib/constants';
+import { COLORS, ADMOB } from '../lib/constants';
 import AdBanner from '../components/AdBanner';
-import { useInterstitial } from '../lib/useInterstitial';
+import {
+  InterstitialAd,
+  AdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 import { useOnboardingStore } from '../store/useOnboardingStore';
+
+const IS_DEV = __DEV__;
+const AD_UNIT_ID = IS_DEV
+  ? TestIds.INTERSTITIAL
+  : Platform.OS === 'ios'
+    ? ADMOB.INTERSTITIAL_IOS
+    : ADMOB.INTERSTITIAL_ANDROID;
 
 // Dados de evolução salarial por área — baseados no CAGED 2023-2025
 const EVOLUCAO_DATA: Record<string, { meses: string[]; valores: number[]; variacao: number; tendencia: string }> = {
@@ -82,16 +93,73 @@ const DEFAULT_AREA = 'Tecnologia';
 export default function EvolucaoScreen() {
   const area = useOnboardingStore(s => s.area);
   const [unlocked, setUnlocked] = useState(false);
-  const { showAdThenDo } = useInterstitial(['mercado trabalho', 'salario', 'carreira']);
+  const [adReady, setAdReady] = useState(false);
+  const [adTimedOut, setAdTimedOut] = useState(false);
+  const adRef = useRef<ReturnType<typeof InterstitialAd.createForAdRequest> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isDefaulting = !area || !EVOLUCAO_DATA[area];
   const selectedArea = isDefaulting ? DEFAULT_AREA : area;
   const data = EVOLUCAO_DATA[selectedArea];
   const maxVal = Math.max(...data.valores) * 1.05;
 
-  function handleUnlock() {
-    showAdThenDo(() => setUnlocked(true));
+  // Set up interstitial ad directly (not via useInterstitial hook)
+  useEffect(() => {
+    try {
+      const ad = InterstitialAd.createForAdRequest(AD_UNIT_ID, {
+        keywords: ['mercado trabalho', 'salario', 'carreira'],
+      });
+      adRef.current = ad;
+
+      const unsubLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
+        setAdReady(true);
+      });
+
+      const unsubClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+        // Ad was watched and closed — unlock content
+        setUnlocked(true);
+      });
+
+      const unsubError = ad.addAdEventListener(AdEventType.ERROR, () => {
+        // Ad failed to load — allow timeout fallback to handle it
+        setAdReady(false);
+      });
+
+      ad.load();
+
+      // Fallback: if ad doesn't load within 10 seconds, allow unlock anyway
+      timeoutRef.current = setTimeout(() => {
+        setAdTimedOut(true);
+      }, 10_000);
+
+      return () => {
+        unsubLoaded();
+        unsubClosed();
+        unsubError();
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      };
+    } catch {
+      // If ad creation fails entirely, allow unlock via timeout
+      setAdTimedOut(true);
+    }
+  }, []);
+
+  async function handleUnlock() {
+    if (adReady && adRef.current) {
+      try {
+        await adRef.current.show();
+        // unlock happens in the CLOSED listener above
+      } catch {
+        // show() failed — unlock directly
+        setUnlocked(true);
+      }
+    } else if (adTimedOut) {
+      // Ad never loaded and 10s passed — don't trap user
+      setUnlocked(true);
+    }
   }
+
+  const canPressUnlock = adReady || adTimedOut;
 
   return (
     <SafeAreaView style={s.safe}>
@@ -108,7 +176,11 @@ export default function EvolucaoScreen() {
 
       {!unlocked ? (
         /* ─── ESTADO BLOQUEADO ─── */
-        <View style={s.lockedWrap}>
+        <ScrollView
+          style={s.lockedScroll}
+          contentContainerStyle={s.lockedContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={s.blurPreview}>
             {/* Barras borradas */}
             {[0.60, 0.65, 0.68, 0.72, 0.75, 0.78, 0.82, 0.85].map((w, i) => (
@@ -128,10 +200,19 @@ export default function EvolucaoScreen() {
           <Text style={s.lockedTitle}>Veja a evolução salarial</Text>
           <Text style={s.lockedSub}>Descubra se os salários da sua área estão crescendo ou caindo.</Text>
 
-          <TouchableOpacity style={s.unlockBtn} onPress={handleUnlock}>
-            <Text style={s.unlockBtnTxt}>🎬  Assistir anúncio para desbloquear</Text>
+          <TouchableOpacity
+            style={[s.unlockBtn, !canPressUnlock && s.unlockBtnDisabled]}
+            onPress={handleUnlock}
+            disabled={!canPressUnlock}
+          >
+            <Text style={[s.unlockBtnTxt, !canPressUnlock && s.unlockBtnTxtDisabled]}>
+              {canPressUnlock
+                ? '🎬  Assistir anúncio para desbloquear'
+                : '⏳ Carregando anúncio...'}
+            </Text>
           </TouchableOpacity>
-        </View>
+          <View style={{ height: 32 }} />
+        </ScrollView>
       ) : (
         /* ─── ESTADO DESBLOQUEADO ─── */
         <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
@@ -221,7 +302,8 @@ const s = StyleSheet.create({
   headerSub:      { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
 
   // Locked
-  lockedWrap:     { flex: 1, paddingHorizontal: 20, paddingTop: 12, alignItems: 'center' },
+  lockedScroll:   { flex: 1 },
+  lockedContent:  { paddingHorizontal: 20, paddingTop: 12, alignItems: 'center', paddingBottom: 32 },
   blurPreview:    { width: '100%', backgroundColor: COLORS.surface, borderRadius: 20, padding: 16, marginBottom: 24, overflow: 'hidden', position: 'relative' },
   blurRow:        { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
   blurLabel:      { fontSize: 10, color: 'rgba(255,255,255,0.08)', width: 40 },
@@ -234,7 +316,9 @@ const s = StyleSheet.create({
   lockedTitle:    { fontSize: 22, fontWeight: '900', color: '#fff', textAlign: 'center', marginBottom: 8 },
   lockedSub:      { fontSize: 14, color: 'rgba(255,255,255,0.45)', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   unlockBtn:      { width: '100%', backgroundColor: COLORS.primary, borderRadius: 28, height: 54, alignItems: 'center', justifyContent: 'center' },
+  unlockBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.12)' },
   unlockBtnTxt:   { color: COLORS.dark, fontSize: 16, fontWeight: '900' },
+  unlockBtnTxtDisabled: { color: 'rgba(255,255,255,0.4)' },
 
   // Unlocked
   content:        { paddingHorizontal: 20 },
