@@ -9,15 +9,15 @@ export const ADZUNA_APP_KEY = '3d838dfc1cc9ec16c0d4feff067fdd33';
 // ─── AdMob ────────────────────────────────────────────────────────────────────
 export const ADMOB = {
   APP_ID:               'ca-app-pub-9316035916536420~1961894132',
-  REWARDED_ANDROID:     'ca-app-pub-9316035916536420/4923099397',
-  REWARDED_VAGAS_ANDROID: 'ca-app-pub-9316035916536420/3500957073',   // 🆕 Rewarded dedicado para vagas
-  INTERSTITIAL_ANDROID: 'ca-app-pub-9316035916536420/3763763682',
-  BANNER_ANDROID:       'ca-app-pub-9316035916536420/1537239371',
-  APP_OPEN_ANDROID:     'ca-app-pub-9316035916536420/7632873852',
-  REWARDED_IOS:         'ca-app-pub-9316035916536420/4923099397',
-  REWARDED_VAGAS_IOS:   'ca-app-pub-9316035916536420/3500957073',     // 🆕 Mesmo ID por ora
-  INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/3763763682',
-  BANNER_IOS:           'ca-app-pub-9316035916536420/1537239371',
+  REWARDED_ANDROID:     'ca-app-pub-9316035916536420/3401306180',     // Rewards entrada (simulação salário)
+  REWARDED_VAGAS_ANDROID: 'ca-app-pub-9316035916536420/3500957073',   // Rewards vagas
+  INTERSTITIAL_ANDROID: 'ca-app-pub-9316035916536420/2550558246',     // Interstitial cliente engajado
+  BANNER_ANDROID:       'ca-app-pub-9316035916536420/4577955786',     // Banner nas telas
+  APP_OPEN_ANDROID:     'ca-app-pub-9316035916536420/7632873852',     // Abertura do app
+  REWARDED_IOS:         'ca-app-pub-9316035916536420/3401306180',
+  REWARDED_VAGAS_IOS:   'ca-app-pub-9316035916536420/3500957073',
+  INTERSTITIAL_IOS:     'ca-app-pub-9316035916536420/2550558246',
+  BANNER_IOS:           'ca-app-pub-9316035916536420/4577955786',
   APP_OPEN_IOS:         'ca-app-pub-9316035916536420/7632873852',
   TEST_REWARDED:        'ca-app-pub-3940256099942544/5224354917',
   TEST_INTERSTITIAL:    'ca-app-pub-3940256099942544/1033173712',
